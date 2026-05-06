@@ -23,9 +23,10 @@ protected $fillable = [
     'nama',
     'email',
     'password',
-    'role', // Wajib ada di sini
+    'role',
     'no_telepon',
     'alamat',
+    'is_available',
 ];
 
     /**
@@ -39,15 +40,13 @@ protected $fillable = [
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'is_available' => 'boolean',
+    ];
 }

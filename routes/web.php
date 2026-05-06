@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\KonsultanController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -10,36 +12,47 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
-// 1. HALAMAN UTAMA (Dashboard Nasabah/Umum)
+// 1. HALAMAN UTAMA (publik)
 Route::get('/', function () {
     return Inertia::render('Dashboard');
 })->name('dashboard');
 
-// Force redirect jika ada link lama yang mengakses /dashboard
 Route::get('/dashboard', function () {
     return redirect()->route('dashboard');
 });
 
-// 2. AREA KONSULTAN (Role 2)
-Route::middleware(['auth', 'verified', 'role:konsultan'])->group(function () {
-    Route::get('/konsultan/dashboard', function () {
-        return Inertia::render('Konsultan/Dashboard'); // Pastikan K dan D besar sesuai folder
-    })->name('konsultan.dashboard');
+// 2. AREA ADMIN (Role 1)
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+
+    // Dashboard Admin — menggunakan getDashboardStats()
+    Route::get('/dashboard', [AdminController::class, 'getDashboardStats'])->name('dashboard');
+
+    // Manajemen User (CRUD sesuai class diagram)
+    Route::get('/users',          [AdminController::class, 'index'])->name('users.index');
+    Route::post('/users',         [AdminController::class, 'store'])->name('users.store');
+    Route::put('/users/{id}',     [AdminController::class, 'update'])->name('users.update');
+    Route::delete('/users/{id}',  [AdminController::class, 'destroy'])->name('users.destroy');
+    Route::get('/users/kelola',   [AdminController::class, 'kelolaUser'])->name('users.kelola');
 });
 
-// 3. AREA ADMIN (Role 1)
-Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return Inertia::render('Admin/Dashboard');
-    })->name('admin.dashboard');
+// 3. AREA KONSULTAN (Role 2)
+Route::middleware(['auth', 'verified', 'role:konsultan'])->prefix('konsultan')->name('konsultan.')->group(function () {
+
+    // Dashboard Konsultan
+    Route::get('/dashboard',         [KonsultanController::class, 'dashboard'])->name('dashboard');
+
+    // Sesuai class diagram KonsultanController
+    Route::patch('/status',          [KonsultanController::class, 'kelolaStatus'])->name('status');
+    Route::get('/jadwal',            [KonsultanController::class, 'getJadwal'])->name('jadwal');
+    Route::patch('/profil',          [KonsultanController::class, 'updateProfil'])->name('profil');
+    Route::get('/riwayat',           [KonsultanController::class, 'getRiwayatKonsultasi'])->name('riwayat');
 });
 
-// 4. PROFILE
+// 4. PROFILE (semua user login)
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile',   [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+    Route::delete('/profile',[ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__.'/auth.php';
