@@ -29,6 +29,15 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Jika user sudah authenticated dengan email berbeda, logout dulu
+        // Ini memungkinkan user untuk switch role/user di login page yang sama
+        $currentUser = Auth::user();
+        if ($currentUser && $currentUser->email !== $request->string('email')) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         $request->authenticate();
 
         $request->session()->regenerate();
