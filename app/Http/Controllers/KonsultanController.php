@@ -36,15 +36,17 @@ class KonsultanController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Ketika model Konsultasi sudah dibuat, uncomment baris di bawah:
-        // $jadwal = \App\Models\Konsultasi::where('konsultan_id', $user->id)
-        //     ->with(['user:id,nama,email', 'layanan:id,nama_layanan'])
-        //     ->orderBy('jadwal', 'asc')
-        //     ->get();
+        $jadwals = [];
 
         return Inertia::render('Konsultan/Jadwal', [
-            'konsultan' => $user->only('id', 'nama', 'email', 'is_available'),
-            'jadwal'    => [], // ganti dengan $jadwal setelah model Konsultasi dibuat
+            'konsultan' => $user->only(
+                'id',
+                'nama',
+                'email',
+                'is_available'
+            ),
+
+            'jadwals' => $jadwals,
         ]);
     }
 
@@ -96,8 +98,28 @@ class KonsultanController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
+        // Contoh hitung total klien
+        // Sesuaikan nanti dengan tabel konsultasi asli
+
+        $totalKlien = 0;
+
+        // Jika model Konsultasi sudah ada:
+        /*
+        $totalKlien = \App\Models\Konsultasi::where('konsultan_id', $user->id)
+            ->distinct('user_id')
+            ->count('user_id');
+        */
+
         return Inertia::render('Konsultan/Dashboard', [
-            'konsultan' => $user->only('id', 'nama', 'email', 'is_available', 'no_telepon'),
+            'konsultan' => $user->only(
+                'id',
+                'nama',
+                'email',
+                'is_available',
+                'no_telepon'
+            ),
+
+            'totalKlien' => $totalKlien,
         ]);
     }
 }
