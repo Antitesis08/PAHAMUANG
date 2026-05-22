@@ -90,23 +90,9 @@ class AdminController extends Controller implements ApiInterface
      * GET /admin/users/kelola
      */
     public function kelolaUser(): \Inertia\Response
-    {
-        $users = User::select('id', 'nama', 'email', 'role', 'no_telepon', 'is_available', 'created_at')
-            ->orderBy('role')
-            ->get()
-            ->map(function ($user) {
-                $user->role_label = match ((int) $user->role) {
-                    1 => 'Admin',
-                    2 => 'Konsultan',
-                    default => 'User',
-                };
-                return $user;
-            });
-
-        return Inertia::render('Admin/Users/Kelola', [
-            'users' => $users,
-        ]);
-    }
+{
+    return Inertia::render('Admin/Users/Kelola');
+}
 
     /**
      * Statistik dashboard admin.

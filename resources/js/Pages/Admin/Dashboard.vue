@@ -105,7 +105,7 @@ const namaAdmin = computed(() => page.props.auth.user?.nama ?? 'Admin');
                 <div class="mt-8">
                     <h3 class="mb-4 text-lg font-semibold text-gray-700">Menu Cepat</h3>
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <a :href="route('admin.users.index')"
+                        <a :href="route('admin.users.kelola')"
                             class="flex items-center rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-indigo-400 hover:shadow">
                             <div class="rounded-lg bg-indigo-100 p-2">
                                 <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
