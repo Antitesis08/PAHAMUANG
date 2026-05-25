@@ -40,14 +40,9 @@ const toggleStatus = () => {
             <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 
                 <!-- Welcome -->
-                <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900">
-                        Selamat Datang, {{ konsultan.nama }}
-                    </h1>
-
-                    <p class="mt-2 text-gray-500">
-                        Kelola ketersediaan dan lihat jadwal konsultasi Anda
-                    </p>
+                <div class="mb-6 rounded-lg bg-indigo-600 p-6 text-white shadow">
+                    <h3 class="text-2xl font-bold">Selamat datang, {{ konsultan.nama }}! 👋</h3>
+                    <p class="mt-1 text-indigo-100">Panel kontrol administrator PAHAMUANG.</p>
                 </div>
 
                 <!-- Status Card -->

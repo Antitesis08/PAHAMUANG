@@ -4,20 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class AdminController extends Controller implements ApiInterface
 {
     /**
-     * Tampilkan daftar semua user.
-     * GET /admin/users
+     * =========================================================
+     * LIST USER
+     * =========================================================
      */
     public function index(): \Inertia\Response
     {
-        $users = User::select('id', 'nama', 'email', 'role', 'no_telepon', 'is_available', 'created_at')
-            ->orderBy('created_at', 'desc')
+        $users = User::select(
+                'id',
+                'nama',
+                'email',
+                'password',
+                'role',
+                'is_available',
+                'no_telepon',
+                'created_at',
+                'updated_at'
+            )
+            ->orderBy('id', 'asc')
             ->get();
 
         return Inertia::render('Admin/Users/Index', [
@@ -26,8 +36,19 @@ class AdminController extends Controller implements ApiInterface
     }
 
     /**
-     * Simpan user baru.
-     * POST /admin/users
+     * =========================================================
+     * HALAMAN CREATE USER
+     * =========================================================
+     */
+    public function create(): \Inertia\Response
+    {
+        return Inertia::render('Admin/Users/Create');
+    }
+
+    /**
+     * =========================================================
+     * SIMPAN USER
+     * =========================================================
      */
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
@@ -36,24 +57,41 @@ class AdminController extends Controller implements ApiInterface
             'email'      => 'required|email|unique:users,email',
             'password'   => 'required|string|min:8',
             'role'       => 'required|in:1,2,3',
-            'no_telepon' => 'nullable|string|max:20',
+            'no_telepon' => 'required|string|max:20',
         ]);
 
         User::create([
-            'nama'       => $validated['nama'],
-            'email'      => $validated['email'],
-            'password'   => Hash::make($validated['password']),
-            'role'       => $validated['role'],
-            'no_telepon' => $validated['no_telepon'] ?? null,
+            'nama'         => $validated['nama'],
+            'email'        => $validated['email'],
+            'password'     => Hash::make($validated['password']),
+            'role'         => $validated['role'],
+            'no_telepon'   => $validated['no_telepon'],
+            'is_available' => false,
         ]);
 
-        return redirect()->route('admin.users.index')
+        return redirect()
+            ->route('admin.users.index')
             ->with('success', 'User berhasil ditambahkan.');
     }
 
     /**
-     * Update data user.
-     * PUT /admin/users/{id}
+     * =========================================================
+     * HALAMAN EDIT USER
+     * =========================================================
+     */
+    public function edit($id): \Inertia\Response
+    {
+        $user = User::findOrFail($id);
+
+        return Inertia::render('Admin/Users/Edit', [
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * =========================================================
+     * UPDATE USER
+     * =========================================================
      */
     public function update(Request $request, $id): \Illuminate\Http\RedirectResponse
     {
@@ -63,40 +101,62 @@ class AdminController extends Controller implements ApiInterface
             'nama'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users,email,' . $id,
             'role'       => 'required|in:1,2,3',
-            'no_telepon' => 'nullable|string|max:20',
+            'no_telepon' => 'required|string|max:20',
         ]);
 
         $user->update($validated);
 
-        return redirect()->route('admin.users.index')
+        return redirect()
+            ->route('admin.users.index')
             ->with('success', 'User berhasil diperbarui.');
     }
 
     /**
-     * Hapus user.
-     * DELETE /admin/users/{id}
+     * =========================================================
+     * DELETE USER
+     * =========================================================
      */
     public function destroy($id): \Illuminate\Http\RedirectResponse
     {
         $user = User::findOrFail($id);
+
         $user->delete();
 
-        return redirect()->route('admin.users.index')
+        return redirect()
+            ->route('admin.users.index')
             ->with('success', 'User berhasil dihapus.');
     }
 
     /**
-     * Kelola semua user (tampilan manajemen pengguna).
-     * GET /admin/users/kelola
+     * =========================================================
+     * KELOLA USER
+     * =========================================================
      */
     public function kelolaUser(): \Inertia\Response
-{
-    return Inertia::render('Admin/Users/Kelola');
-}
+    {
+        $users = User::select(
+                'id',
+                'nama',
+                'email',
+                'password',
+                'role',
+                'is_available',
+                'no_telepon',
+                'created_at',
+                'updated_at'
+            )
+            ->orderBy('id', 'asc')
+            ->get();
+
+        return Inertia::render('Admin/Users/Kelola', [
+            'users' => $users,
+        ]);
+    }
 
     /**
-     * Statistik dashboard admin.
-     * GET /admin/dashboard-stats
+     * =========================================================
+     * DASHBOARD STATS
+     * =========================================================
      */
     public function getDashboardStats(): \Inertia\Response
     {
@@ -104,7 +164,9 @@ class AdminController extends Controller implements ApiInterface
             'total_user'      => User::where('role', 3)->count(),
             'total_konsultan' => User::where('role', 2)->count(),
             'total_admin'     => User::where('role', 1)->count(),
-            'konsultan_aktif' => User::where('role', 2)->where('is_available', true)->count(),
+            'konsultan_aktif' => User::where('role', 2)
+                                    ->where('is_available', true)
+                                    ->count(),
         ];
 
         return Inertia::render('Admin/Dashboard', [

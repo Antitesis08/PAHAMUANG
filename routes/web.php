@@ -33,8 +33,14 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/users', [AdminController::class, 'index'])
             ->name('users.index');
 
+        Route::get('/users/create', [AdminController::class, 'create'])
+            ->name('users.create');
+
         Route::post('/users', [AdminController::class, 'store'])
             ->name('users.store');
+
+        Route::get('/users/{id}/edit', [AdminController::class, 'edit'])
+            ->name('users.edit');
 
         Route::put('/users/{id}', [AdminController::class, 'update'])
             ->name('users.update');

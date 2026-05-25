@@ -40,7 +40,7 @@ import { Head, Link } from '@inertiajs/vue3';
                             class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-100 transition group-hover:bg-blue-200"
                         >
                             <img
-                                src="/images/icons/konsultan.png"
+                                src="/images/konsultan.png"
                                 alt="Konsultan"
                                 class="h-10 w-10 object-contain"
                             />
@@ -71,7 +71,7 @@ import { Head, Link } from '@inertiajs/vue3';
                             class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-green-100 transition group-hover:bg-green-200"
                         >
                             <img
-                                src="/images/icons/customer.png"
+                                src="/images/customer.png"
                                 alt="Pelanggan"
                                 class="h-10 w-10 object-contain"
                             />
@@ -90,6 +90,37 @@ import { Head, Link } from '@inertiajs/vue3';
                             class="mt-6 inline-flex items-center font-semibold text-green-600"
                         >
                             Kelola Pelanggan →
+                        </div>
+                    </Link>
+
+                    <!-- Manajemen User -->
+                    <Link
+                        :href="route('admin.users.index')"
+                        class="group rounded-3xl bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                    >
+                        <div
+                            class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-purple-100 transition group-hover:bg-purple-200"
+                        >
+                            <img
+                                src="/images/users.png"
+                                alt="Users"
+                                class="h-10 w-10 object-contain"
+                            />
+                        </div>
+
+                        <h2 class="text-2xl font-bold text-gray-900">
+                            Manajemen User
+                        </h2>
+
+                        <p class="mt-3 text-gray-500">
+                            Tambah user baru, edit data akun,
+                            dan hapus pengguna dari sistem.
+                        </p>
+
+                        <div
+                            class="mt-6 inline-flex items-center font-semibold text-purple-600"
+                        >
+                            Kelola User →
                         </div>
                     </Link>
 

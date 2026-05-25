@@ -1,83 +1,292 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, useForm, Link } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+
+const props = defineProps({
+    users: Array,
+});
+
+/*
+|--------------------------------------------------------------------------
+| SEARCH
+|--------------------------------------------------------------------------
+*/
+const search = ref('');
+
+const filteredUsers = computed(() => {
+    return props.users.filter((user) => {
+        return (
+            user.nama
+                .toLowerCase()
+                .includes(search.value.toLowerCase()) ||
+
+            user.email
+                .toLowerCase()
+                .includes(search.value.toLowerCase())
+        );
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| FORM
+|--------------------------------------------------------------------------
+*/
+const form = useForm({
+    nama: '',
+    email: '',
+    password: '',
+    role: '3',
+    no_telepon: '',
+});
+
+const submit = () => {
+    form.post(route('admin.users.store'), {
+        preserveScroll: true,
+        onSuccess: () => form.reset(),
+    });
+};
+
+const deleteUser = (id) => {
+    if (confirm('Yakin ingin menghapus user ini?')) {
+        form.delete(route('admin.users.destroy', id));
+    }
+};
+
+/*
+|--------------------------------------------------------------------------
+| ROLE LABEL
+|--------------------------------------------------------------------------
+*/
+const roleLabel = (role) => {
+    if (role == 1) return 'Admin';
+    if (role == 2) return 'Konsultan';
+    return 'User';
+};
 </script>
 
 <template>
-    <Head title="Kelola User" />
+    <Head title="Kelola Semua User" />
 
     <AuthenticatedLayout>
 
-        <template #header>
-            <h2 class="text-2xl font-bold text-gray-800">
-                Kelola User
-            </h2>
-        </template>
-
         <div class="min-h-screen bg-gray-50 py-8">
+
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
+                <!-- Header -->
                 <div class="mb-8">
                     <h1 class="text-3xl font-bold text-gray-900">
-                        Manajemen Pengguna
+                        Manajemen Semua User
                     </h1>
 
                     <p class="mt-2 text-gray-500">
-                        Pilih kategori pengguna yang ingin dikelola
+                        Tambah dan kelola semua akun pengguna PAHAMUANG
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <!-- Search + Button -->
+                <div class="mb-6 rounded-2xl bg-white p-5 shadow-sm">
 
-                    <!-- Konsultan -->
-                    <Link
-                        :href="route('admin.konsultan.index')"
-                        class="rounded-3xl bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+                    <div
+                        class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
                     >
-                        <div
-                            class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-100"
-                        >
-                            <img
-                                src="/images/icons/konsultan.png"
-                                class="h-10 w-10 object-contain"
+
+                        <!-- Search -->
+                        <div class="relative w-full md:w-96">
+
+                            <input
+                                v-model="search"
+                                type="text"
+                                placeholder="Cari user berdasarkan nama atau email..."
+                                class="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm transition focus:border-blue-500 focus:ring-blue-500"
                             />
+
+                            <svg
+                                class="absolute left-4 top-3.5 h-5 w-5 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                            </svg>
                         </div>
 
-                        <h2 class="text-2xl font-bold text-gray-900">
-                            Manajemen Konsultan
-                        </h2>
-
-                        <p class="mt-3 text-gray-500">
-                            Kelola seluruh data konsultan aplikasi.
-                        </p>
-                    </Link>
-
-                    <!-- Pelanggan -->
-                    <Link
-                        :href="route('admin.pelanggan.index')"
-                        class="rounded-3xl bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-                    >
-                        <div
-                            class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-green-100"
+                        <!-- Button -->
+                        <Link
+                            :href="route('admin.users.create')"
+                            class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
                         >
-                            <img
-                                src="/images/icons/customer.png"
-                                class="h-10 w-10 object-contain"
-                            />
-                        </div>
 
-                        <h2 class="text-2xl font-bold text-gray-900">
-                            User Pelanggan
-                        </h2>
+                            <svg
+                                class="mr-2 h-5 w-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 4v16m8-8H4"
+                                />
+                            </svg>
 
-                        <p class="mt-3 text-gray-500">
-                            Kelola seluruh user pelanggan aplikasi.
-                        </p>
-                    </Link>
+                            Tambah User
+                        </Link>
+
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-hidden rounded-3xl bg-white shadow-sm">
+
+                    <div class="overflow-x-auto">
+
+                        <table class="min-w-full text-sm text-gray-700">
+
+                            <!-- Table Head -->
+                            <thead class="bg-blue-600 text-white">
+                                <tr>
+                                    <th class="px-6 py-4 text-left">ID</th>
+                                    <th class="px-6 py-4 text-left">Nama</th>
+                                    <th class="px-6 py-4 text-left">Email</th>
+                                    <th class="px-6 py-4 text-left">Password</th>
+                                    <th class="px-6 py-4 text-left">Role</th>
+                                    <th class="px-6 py-4 text-left">Available</th>
+                                    <th class="px-6 py-4 text-left">Telepon</th>
+                                    <th class="px-6 py-4 text-left">Created</th>
+                                    <th class="px-6 py-4 text-left">Updated</th>
+                                    <th class="px-6 py-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+
+                            <!-- Table Body -->
+                            <tbody>
+
+                                <tr
+                                    v-for="user in filteredUsers"
+                                    :key="user.id"
+                                    class="border-b transition hover:bg-gray-50"
+                                >
+                                    <!-- ID -->
+                                    <td class="px-6 py-4">
+                                        {{ user.id }}
+                                    </td>
+
+                                    <!-- Nama -->
+                                    <td class="px-6 py-4 font-semibold text-gray-900">
+                                        {{ user.nama }}
+                                    </td>
+
+                                    <!-- Email -->
+                                    <td class="px-6 py-4">
+                                        {{ user.email }}
+                                    </td>
+
+                                    <!-- Password -->
+                                    <td class="px-6 py-4">
+                                        ********
+                                    </td>
+
+                                    <!-- Role -->
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700"
+                                        >
+                                            {{ roleLabel(user.role) }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Status -->
+                                    <td class="px-6 py-4">
+
+                                        <span
+                                            v-if="user.is_available"
+                                            class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700"
+                                        >
+                                            Aktif
+                                        </span>
+
+                                        <span
+                                            v-else
+                                            class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700"
+                                        >
+                                            Offline
+                                        </span>
+
+                                    </td>
+
+                                    <!-- Telepon -->
+                                    <td class="px-6 py-4">
+                                        {{ user.no_telepon ?? '-' }}
+                                    </td>
+
+                                    <!-- Created -->
+                                    <td class="px-6 py-4">
+                                        {{ user.created_at }}
+                                    </td>
+
+                                    <!-- Updated -->
+                                    <td class="px-6 py-4">
+                                        {{ user.updated_at }}
+                                    </td>
+
+                                    <!-- Action -->
+                                    <td class="px-6 py-4 text-center">
+
+                                        <div class="flex items-center justify-center gap-2">
+
+                                            <!-- Edit -->
+                                            <Link
+                                                :href="route('admin.users.edit', user.id)"
+                                                class="rounded-xl bg-yellow-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-yellow-600"
+                                            >
+                                                Edit
+                                            </Link>
+
+                                            <!-- Delete -->
+                                            <button
+                                                @click="deleteUser(user.id)"
+                                                class="rounded-xl bg-red-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-600"
+                                            >
+                                                Hapus
+                                            </button>
+
+                                        </div>
+
+                                    </td>
+                                </tr>
+
+                                <!-- Empty -->
+                                <tr v-if="filteredUsers.length === 0">
+
+                                    <td
+                                        colspan="10"
+                                        class="px-6 py-10 text-center text-gray-400"
+                                    >
+                                        User tidak ditemukan
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
 
                 </div>
 
             </div>
+
         </div>
+
     </AuthenticatedLayout>
 </template>

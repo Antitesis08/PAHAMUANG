@@ -55,13 +55,6 @@ defineProps({
                             </svg>
                         </div>
 
-                        <!-- Button -->
-                        <button
-                            class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600"
-                        >
-                            + Tambah Konsultan
-                        </button>
-
                     </div>
                 </div>
 
