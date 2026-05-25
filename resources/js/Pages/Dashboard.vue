@@ -1,61 +1,247 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
+import PublicNavbar from '@/Components/PublicNavbar.vue';
 
-defineProps({
-    auth: Object
-});
+const layanan = [
+    {
+        title: 'Perencanaan Pensiun',
+        slug: 'pensiun',
+        desc: 'Rencanakan masa pensiun Anda dengan strategi terbaik.',
+        price: 'Rp500.000 - Rp1.500.000',
+        icon: '💼'
+    },
+    {
+        title: 'Manajemen Utang',
+        slug: 'utang',
+        desc: 'Kelola utang secara efektif dan aman.',
+        price: 'Rp400.000 - Rp1.000.000',
+        icon: '💳'
+    },
+    {
+        title: 'Perencanaan Investasi',
+        slug: 'investasi',
+        desc: 'Optimalkan investasi untuk masa depan.',
+        price: 'Rp750.000 - Rp2.000.000',
+        icon: '📈'
+    },
+    {
+        title: 'Asuransi & Proteksi',
+        slug: 'asuransi',
+        desc: 'Proteksi diri dan keluarga dengan tepat.',
+        price: 'Rp350.000 - Rp800.000',
+        icon: '🛡️'
+    },
+    {
+        title: 'Perencanaan Pajak',
+        slug: 'pajak',
+        desc: 'Kelola kewajiban pajak lebih optimal.',
+        price: 'Rp600.000 - Rp1.500.000',
+        icon: '📄'
+    },
+    {
+        title: 'Dana Pendidikan',
+        slug: 'pendidikan',
+        desc: 'Persiapkan pendidikan anak sejak dini.',
+        price: 'Rp500.000 - Rp1.200.000',
+        icon: '🎓'
+    }
+];
+
+const konsultan = [
+    {
+        id: 1,
+        nama: 'Dr. Budi Santoso',
+        bidang: 'Investasi',
+        harga: 'Rp750.000/jam'
+    },
+    {
+        id: 2,
+        nama: 'Siti Nurhaliza',
+        bidang: 'Pajak',
+        harga: 'Rp850.000/jam'
+    },
+    {
+        id: 3,
+        nama: 'Linda Kusuma',
+        bidang: 'Asuransi',
+        harga: 'Rp700.000/jam'
+    }
+];
 </script>
 
 <template>
-    <Head title="Selamat Datang" />
+    <Head title="Dashboard" />
 
-    <div class="min-h-screen bg-gray-50">
-        <nav class="bg-white border-b border-gray-200 p-4 sticky top-0 z-50 shadow-sm">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <div class="font-bold text-2xl text-indigo-600 tracking-tight">PAHAMUANG</div>
-                
-                <div class="flex items-center space-x-4">
-                    <Link 
-                        :href="route('login')"
-                        class="text-sm text-gray-700 hover:text-indigo-600 font-semibold border border-gray-300 px-5 py-2.5 rounded-lg transition-all duration-200 hover:bg-indigo-50 shadow-sm inline-block"
+    <div class="min-h-screen bg-gray-100">
+
+        <PublicNavbar />
+
+        <!-- Hero -->
+        <section class="bg-indigo-700 text-white py-24">
+
+            <div class="max-w-5xl mx-auto px-6 text-center">
+
+                <p class="uppercase tracking-widest text-indigo-200 text-sm mb-3">
+                    Selamat Datang di PAHAMUANG
+                </p>
+
+                <h1 class="text-5xl font-extrabold leading-tight">
+                    Wujudkan Masa Depan Finansial
+                    yang Lebih Baik
+                </h1>
+
+                <p class="mt-6 text-indigo-100 text-lg max-w-3xl mx-auto">
+                    Konsultasi bersama pakar keuangan profesional untuk masa depan finansial Anda.
+                </p>
+
+                <div class="mt-10 flex justify-center gap-4">
+
+                    <Link
+                        :href="route('public.konsultan')"
+                        class="bg-green-500 hover:bg-green-600 transition px-6 py-3 rounded-lg font-semibold"
                     >
-                        Login Staff (Admin/Konsultan)
+                        Mulai Konsultasi
                     </Link>
+
+                    <Link
+                        :href="route('public.konsultan')"
+                        class="bg-white text-gray-700 px-6 py-3 rounded-lg font-semibold"
+                    >
+                        Cari Konsultan
+                    </Link>
+
                 </div>
+
             </div>
-        </nav>
 
-        <main class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-md sm:rounded-2xl p-10 border border-gray-100">
-                    <div class="text-center mb-12">
-                        <h1 class="text-4xl font-extrabold text-gray-900 leading-tight">
-                            Selamat Datang di <span class="text-indigo-600">PAHAMUANG</span>
-                        </h1>
-                        <p class="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
-                            Solusi konsultasi keuangan terpercaya dan profesional untuk masa depan Anda yang lebih baik.
-                        </p>
-                    </div>
+        </section>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div v-for="i in 3" :key="i" class="group p-8 bg-white rounded-2xl border border-gray-200 hover:border-indigo-300 hover:shadow-xl transition-all duration-300">
-                            <div class="h-14 w-14 bg-indigo-600 text-white rounded-2xl mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <h3 class="font-bold text-xl text-gray-800">Layanan Unggulan {{ i }}</h3>
-                            <p class="text-gray-500 mt-3 leading-relaxed">
-                                Dapatkan bimbingan finansial terbaik dari para ahli konsultan kami yang sudah berpengalaman luas.
-                            </p>
+        <!-- layanan -->
+        <section class="py-20 bg-white">
+
+            <div class="max-w-7xl mx-auto px-6">
+
+                <div class="text-center mb-14">
+
+                    <h2 class="text-3xl font-bold">
+                        Layanan Konsultasi Keuangan
+                    </h2>
+
+                    <p class="text-gray-500 mt-3">
+                        Pilih layanan sesuai kebutuhan Anda
+                    </p>
+
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+
+                    <Link
+                        v-for="(item, index) in layanan"
+                        :key="index"
+                        :href="route('public.layanan', item.slug)"
+                        class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-xl transition block"
+                    >
+
+                        <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center text-2xl">
+                            {{ item.icon }}
                         </div>
-                    </div>
-                </div>
-            </div>
-        </main>
 
-        <footer class="text-center py-8 text-gray-400 text-sm">
-            &copy; 2026 PAHAMUANG Team. All rights reserved.
+                        <h3 class="font-bold text-xl mt-5">
+                            {{ item.title }}
+                        </h3>
+
+                        <p class="text-gray-500 mt-3">
+                            {{ item.desc }}
+                        </p>
+
+                        <p class="mt-5 font-bold text-indigo-700">
+                            {{ item.price }}
+                        </p>
+
+                    </Link>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- konsultan -->
+        <section class="py-20 bg-gray-50">
+
+            <div class="max-w-7xl mx-auto px-6">
+
+                <div class="text-center mb-14">
+
+                    <h2 class="text-3xl font-bold">
+                        Konsultan Terpercaya
+                    </h2>
+
+                    <p class="text-gray-500 mt-3">
+                        Dipercaya oleh ratusan klien
+                    </p>
+
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+
+                    <Link
+                        v-for="item in konsultan"
+                        :key="item.id"
+                        :href="route('public.konsultan.detail', item.id)"
+                        class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition"
+                    >
+
+                        <div class="bg-indigo-100 h-40"></div>
+
+                        <div class="p-6">
+
+                            <div class="flex justify-between">
+
+                                <span class="bg-green-500 text-white text-xs px-3 py-1 rounded-full">
+                                    Tersedia
+                                </span>
+
+                                <span class="text-yellow-500">
+                                    ★ 4.9
+                                </span>
+
+                            </div>
+
+                            <h3 class="text-xl font-bold mt-5">
+                                {{ item.nama }}
+                            </h3>
+
+                            <p class="text-gray-500 mt-2">
+                                {{ item.bidang }}
+                            </p>
+
+                            <div class="mt-6 flex justify-between items-center">
+
+                                <p class="font-bold text-indigo-700">
+                                    {{ item.harga }}
+                                </p>
+
+                                <div class="bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm">
+                                    Lihat Profil
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </Link>
+
+                </div>
+
+            </div>
+
+        </section>
+
+ <!-- Footer -->
+        <footer class="bg-white border-t border-gray-200 py-6 text-center text-gray-500 text-sm">
+            © 2026 PAHAMUANG Team. All rights reserved.
         </footer>
+        
     </div>
 </template>

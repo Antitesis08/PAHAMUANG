@@ -12,6 +12,7 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
+
 // 1. HALAMAN UTAMA (publik)
 Route::get('/', function () {
     return Inertia::render('Dashboard');
@@ -20,6 +21,43 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return redirect()->route('dashboard');
 });
+
+Route::get('/konsultan-public', function () {
+    return Inertia::render('Public/KonsultanList');
+})->name('public.konsultan');
+
+// detail konsultan
+Route::get('/konsultan-public/{id}', function ($id) {
+    return Inertia::render('Public/KonsultanDetail', [
+        'id' => $id
+    ]);
+})->name('public.konsultan.detail');
+
+// layanan keuangan
+Route::get('/layanan/{slug}', function ($slug) {
+    return Inertia::render('Public/LayananDetail', [
+        'slug' => $slug
+    ]);
+})->name('public.layanan');
+
+// booking jadwal
+Route::get('/booking/{id}', function ($id) {
+    return Inertia::render('Public/BookingSchedule', [
+        'id' => $id
+    ]);
+})->name('public.booking');
+
+// checkout pembayaran
+Route::get('/checkout/{id}', function ($id) {
+
+    return Inertia::render('Public/Checkout', [
+        'id' => $id,
+        'date' => request('date'),
+        'time' => request('time'),
+        'topic' => request('topic'),
+    ]);
+
+})->name('public.checkout');
 
 // 2. AREA ADMIN (Role 1)
 Route::middleware(['auth', 'verified', 'role:admin'])
