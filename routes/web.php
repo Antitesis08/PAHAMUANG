@@ -15,7 +15,10 @@ use Inertia\Inertia;
 
 // 1. HALAMAN UTAMA (publik)
 Route::get('/', function () {
-    return Inertia::render('Dashboard');
+    $layanan = \App\Models\Layanan::all();
+    return Inertia::render('Dashboard', [
+        'layanans' => $layanan
+    ]);
 })->name('dashboard');
 
 Route::get('/dashboard', function () {
@@ -23,13 +26,17 @@ Route::get('/dashboard', function () {
 });
 
 Route::get('/konsultan-public', function () {
-    return Inertia::render('Public/KonsultanList');
+    $konsultan = \App\Models\User::where('role', 2)->get();
+    return Inertia::render('Public/KonsultanList', [
+        'initialKonsultans' => $konsultan
+    ]);
 })->name('public.konsultan');
 
 // detail konsultan
 Route::get('/konsultan-public/{id}', function ($id) {
+    $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
     return Inertia::render('Public/KonsultanDetail', [
-        'id' => $id
+        'konsultan' => $konsultan
     ]);
 })->name('public.konsultan.detail');
 
