@@ -123,7 +123,7 @@ class AdminController extends Controller implements ApiInterface
         $user->delete();
 
         return redirect()
-            ->route('admin.users.index')
+            ->back()
             ->with('success', 'User berhasil dihapus.');
     }
 
@@ -150,6 +150,80 @@ class AdminController extends Controller implements ApiInterface
 
         return Inertia::render('Admin/Users/Kelola', [
             'users' => $users,
+        ]);
+    }
+
+    /**
+     * =========================================================
+     * DAFTAR KONSULTAN
+     * =========================================================
+     */
+    public function indexKonsultan(): \Inertia\Response
+    {
+        $konsultans = User::select(
+                'id',
+                'nama',
+                'email',
+                'no_telepon',
+                'created_at',
+                'updated_at',
+                'is_available'
+            )
+            ->where('role', 2)
+            ->orderBy('id', 'asc')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'nama' => $user->nama,
+                    'email' => $user->email,
+                    'no_telepon' => $user->no_telepon,
+                    'created_at' => $user->created_at->format('Y-m-d H:i:s'),
+                    'updated_at' => $user->updated_at->format('Y-m-d H:i:s'),
+                    'is_available' => $user->is_available,
+                    'spesialisasi' => $user->spesialisasi ?? null,
+                    'rating' => $user->rating ?? null,
+                ];
+            });
+
+        return Inertia::render('Admin/Konsultan/Index', [
+            'konsultans' => $konsultans,
+        ]);
+    }
+
+    /**
+     * =========================================================
+     * DAFTAR PELANGGAN
+     * =========================================================
+     */
+    public function indexPelanggan(): \Inertia\Response
+    {
+        $pelanggan = User::select(
+                'id',
+                'nama',
+                'email',
+                'no_telepon',
+                'created_at',
+                'updated_at',
+                'email_verified_at'
+            )
+            ->where('role', 3)
+            ->orderBy('id', 'asc')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'nama' => $user->nama,
+                    'email' => $user->email,
+                    'no_telepon' => $user->no_telepon,
+                    'created_at' => $user->created_at->format('Y-m-d H:i:s'),
+                    'updated_at' => $user->updated_at->format('Y-m-d H:i:s'),
+                    'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->format('Y-m-d H:i:s') : null,
+                ];
+            });
+
+        return Inertia::render('Admin/Pelanggan/Index', [
+            'pelanggan' => $pelanggan,
         ]);
     }
 

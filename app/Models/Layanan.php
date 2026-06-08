@@ -12,4 +12,14 @@ class Layanan extends Model
         'harga',
         'kategori', 
     ];
+
+    public function getDetail(): self
+    {
+        return $this;
+    }
+
+    public function isAvailable(): bool
+    {
+        return $this->harga > 0;
+    }
 }

@@ -49,22 +49,95 @@ Route::get('/layanan/{slug}', function ($slug) {
 
 // booking jadwal
 Route::get('/booking/{id}', function ($id) {
+    $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
+    $layanan = \App\Models\Layanan::where('harga', 750000)->first() ?? \App\Models\Layanan::first();
+
     return Inertia::render('Public/BookingSchedule', [
-        'id' => $id
+        'id' => $id,
+        'konsultan' => $konsultan,
+        'layanan' => $layanan,
     ]);
 })->name('public.booking');
 
 // checkout pembayaran
 Route::get('/checkout/{id}', function ($id) {
+    $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
+    $layanan = \App\Models\Layanan::where('harga', 750000)->first() ?? \App\Models\Layanan::first();
 
     return Inertia::render('Public/Checkout', [
         'id' => $id,
         'date' => request('date'),
         'time' => request('time'),
         'topic' => request('topic'),
+        'konsultan' => $konsultan,
+        'layanan' => $layanan,
+    ]);
+})->name('public.checkout');
+
+// proses booking & pembayaran palsu
+Route::post('/checkout/{id}', function (\Illuminate\Http\Request $request, $id) {
+    $rules = [
+        'date' => 'required|date',
+        'time' => 'required',
+        'topic' => 'nullable|string',
+        'payment_method' => 'required|string',
+    ];
+
+    if (!auth()->check()) {
+        $rules['name'] = 'required|string|max:255';
+        $rules['email'] = 'required|email|max:255';
+        $rules['phone'] = 'required|string|max:20';
+    }
+
+    $request->validate($rules);
+
+    $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
+    $layanan = \App\Models\Layanan::where('harga', 750000)->first() ?? \App\Models\Layanan::first();
+
+    if (auth()->check()) {
+        $client = auth()->user();
+    } else {
+        // Cari atau buat user berdasarkan email
+        $client = \App\Models\User::where('email', $request->input('email'))->first();
+        if (!$client) {
+            $client = \App\Models\User::create([
+                'nama' => $request->input('name'),
+                'email' => $request->input('email'),
+                'no_telepon' => $request->input('phone'),
+                'password' => \Illuminate\Support\Facades\Hash::make('password_pahamuang_guest_123'),
+                'role' => 3, // Pelanggan
+            ]);
+        } else {
+            if ($request->input('phone')) {
+                $client->update(['no_telepon' => $request->input('phone')]);
+            }
+        }
+    }
+
+    $jadwalTime = $request->input('date') . ' ' . $request->input('time') . ':00';
+
+    // Buat konsultasi
+    $konsultasi = \App\Models\Konsultasi::create([
+        'user_id' => $client->id,
+        'konsultan_id' => $konsultan->id,
+        'layanan_id' => $layanan->id,
+        'status' => 'pending',
+        'jadwal' => $jadwalTime,
+        'catatan' => $request->input('topic'),
     ]);
 
-})->name('public.checkout');
+    // Buat pembayaran palsu
+    \App\Models\Pembayaran::create([
+        'konsultasi_id' => $konsultasi->id,
+        'jumlah' => $layanan->harga,
+        'status_pembayaran' => 'lunas',
+        'metode_pembayaran' => $request->input('payment_method'),
+        'kode_transaksi' => 'TX-' . strtoupper(uniqid()),
+        'tanggal_bayar' => now(),
+    ]);
+
+    return redirect()->route('dashboard')->with('success', 'Booking konsultasi berhasil. Konsultan akan segera menghubungi Anda melalui WhatsApp atau Email untuk konfirmasi jadwal.');
+})->name('public.checkout.store');
 
 // 2. AREA ADMIN (Role 1)
 Route::middleware(['auth', 'verified', 'role:admin'])
@@ -96,14 +169,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/users/kelola', [AdminController::class, 'kelolaUser'])
             ->name('users.kelola');
 
-        // NEW
-        Route::get('/konsultan', function () {
-            return Inertia::render('Admin/Konsultan/Index');
-        })->name('konsultan.index');
+        Route::get('/konsultan', [AdminController::class, 'indexKonsultan'])
+            ->name('konsultan.index');
 
-        Route::get('/pelanggan', function () {
-            return Inertia::render('Admin/Pelanggan/Index');
-        })->name('pelanggan.index');
+        Route::get('/pelanggan', [AdminController::class, 'indexPelanggan'])
+            ->name('pelanggan.index');
     });
 
 // 3. AREA KONSULTAN (Role 2)
@@ -114,6 +184,7 @@ Route::middleware(['auth', 'verified', 'role:konsultan'])->prefix('konsultan')->
 
     // Sesuai class diagram KonsultanController
     Route::patch('/status',          [KonsultanController::class, 'kelolaStatus'])->name('status');
+    Route::patch('/konsultasi/{id}/status', [KonsultanController::class, 'updateKonsultasiStatus'])->name('konsultasi.status');
     Route::get('/jadwal',            [KonsultanController::class, 'getJadwal'])->name('jadwal');
     Route::patch('/profil',          [KonsultanController::class, 'updateProfil'])->name('profil');
     Route::get('/riwayat',           [KonsultanController::class, 'getRiwayatKonsultasi'])->name('riwayat');

@@ -2,11 +2,15 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 
+const defaultRole = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('role') || '2'
+    : '2';
+
 const form = useForm({
     nama: '',
     email: '',
     password: '',
-    role: '2',
+    role: defaultRole,
     no_telepon: '',
 });
 
@@ -128,6 +132,7 @@ const submit = () => {
                                 >
                                     <option value="1">Admin</option>
                                     <option value="2">Konsultan</option>
+                                    <option value="3">User / Pelanggan</option>
                                 </select>
                             </div>
 

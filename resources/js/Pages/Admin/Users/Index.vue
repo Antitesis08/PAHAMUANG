@@ -16,14 +16,23 @@ const search = ref('');
 
 const filteredUsers = computed(() => {
     return props.users.filter((user) => {
-        return (
+        const query = search.value.toLowerCase();
+    return (
             user.nama
                 .toLowerCase()
-                .includes(search.value.toLowerCase()) ||
+                .includes(query) ||
 
             user.email
                 .toLowerCase()
-                .includes(search.value.toLowerCase())
+                .includes(query) ||
+
+            (user.no_telepon ?? '')
+                .toLowerCase()
+                .includes(query) ||
+
+            roleLabel(user.role)
+                .toLowerCase()
+                .includes(query)
         );
     });
 });
@@ -157,7 +166,6 @@ const roleLabel = (role) => {
                                     <th class="px-6 py-4 text-left">ID</th>
                                     <th class="px-6 py-4 text-left">Nama</th>
                                     <th class="px-6 py-4 text-left">Email</th>
-                                    <th class="px-6 py-4 text-left">Password</th>
                                     <th class="px-6 py-4 text-left">Role</th>
                                     <th class="px-6 py-4 text-left">Available</th>
                                     <th class="px-6 py-4 text-left">Telepon</th>
@@ -171,13 +179,13 @@ const roleLabel = (role) => {
                             <tbody>
 
                                 <tr
-                                    v-for="user in filteredUsers"
+                                    v-for="(user, index) in filteredUsers"
                                     :key="user.id"
                                     class="border-b transition hover:bg-gray-50"
                                 >
                                     <!-- ID -->
                                     <td class="px-6 py-4">
-                                        {{ user.id }}
+                                        {{ index + 1 }}
                                     </td>
 
                                     <!-- Nama -->
@@ -188,11 +196,6 @@ const roleLabel = (role) => {
                                     <!-- Email -->
                                     <td class="px-6 py-4">
                                         {{ user.email }}
-                                    </td>
-
-                                    <!-- Password -->
-                                    <td class="px-6 py-4">
-                                        ********
                                     </td>
 
                                     <!-- Role -->

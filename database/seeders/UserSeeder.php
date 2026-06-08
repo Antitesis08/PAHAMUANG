@@ -26,6 +26,16 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 2, // 2 untuk Konsultan
             'no_telepon' => '089876543210',
+            'is_available' => true,
+        ]);
+
+        // Data Pelanggan/Client (Role 3)
+        User::create([
+            'nama' => 'Rian Pelanggan',
+            'email' => 'client@pahamuang.com',
+            'password' => Hash::make('password'),
+            'role' => 3, // 3 untuk Pelanggan
+            'no_telepon' => '082134567890',
         ]);
     }
 }

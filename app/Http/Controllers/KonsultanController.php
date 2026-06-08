@@ -36,7 +36,21 @@ class KonsultanController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $jadwals = [];
+        $jadwals = \App\Models\Konsultasi::where('konsultan_id', $user->id)
+            ->with(['user', 'layanan'])
+            ->orderBy('jadwal', 'asc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_user' => $item->user ? $item->user->nama : '-',
+                    'topik' => $item->catatan ?? '-',
+                    'status' => $item->status,
+                    'tanggal' => $item->jadwal ? \Carbon\Carbon::parse($item->jadwal)->translatedFormat('d F Y') : '-',
+                    'jam' => $item->jadwal ? \Carbon\Carbon::parse($item->jadwal)->format('H:i') : '-',
+                    'metode' => 'Video Call',
+                ];
+            });
 
         return Inertia::render('Konsultan/Jadwal', [
             'konsultan' => $user->only(
@@ -77,15 +91,25 @@ class KonsultanController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Ketika model Konsultasi sudah dibuat, uncomment baris di bawah:
-        // $riwayat = \App\Models\Konsultasi::where('konsultan_id', $user->id)
-        //     ->with(['user:id,nama,email', 'layanan:id,nama_layanan', 'pembayaran'])
-        //     ->orderBy('created_at', 'desc')
-        //     ->get();
+        $riwayat = \App\Models\Konsultasi::where('konsultan_id', $user->id)
+            ->where('status', 'selesai')
+            ->with(['user', 'layanan', 'pembayaran'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_user' => $item->user ? $item->user->nama : '-',
+                    'topik' => $item->catatan ?? '-',
+                    'tanggal' => $item->jadwal ? \Carbon\Carbon::parse($item->jadwal)->translatedFormat('d F Y') : '-',
+                    'jam' => $item->jadwal ? \Carbon\Carbon::parse($item->jadwal)->format('H:i') : '-',
+                    'pembayaran' => $item->pembayaran ? 'Rp ' . number_format($item->pembayaran->jumlah, 0, ',', '.') . ' (' . $item->pembayaran->status_pembayaran . ')' : 'Belum Bayar',
+                ];
+            });
 
         return Inertia::render('Konsultan/Riwayat', [
             'konsultan' => $user->only('id', 'nama', 'email'),
-            'riwayat'   => [], // ganti dengan $riwayat setelah model Konsultasi dibuat
+            'riwayat'   => $riwayat,
         ]);
     }
 
@@ -98,17 +122,39 @@ class KonsultanController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Contoh hitung total klien
-        // Sesuaikan nanti dengan tabel konsultasi asli
-
-        $totalKlien = 0;
-
-        // Jika model Konsultasi sudah ada:
-        /*
         $totalKlien = \App\Models\Konsultasi::where('konsultan_id', $user->id)
             ->distinct('user_id')
             ->count('user_id');
-        */
+
+        $totalJadwal = \App\Models\Konsultasi::where('konsultan_id', $user->id)
+            ->where('jadwal', '>=', now())
+            ->count();
+
+        $totalSelesai = \App\Models\Konsultasi::where('konsultan_id', $user->id)
+            ->where('status', 'selesai')
+            ->count();
+
+        $totalPendapatan = \App\Models\Pembayaran::whereHas('konsultasi', function ($query) use ($user) {
+                $query->where('konsultan_id', $user->id);
+            })
+            ->sum('jumlah');
+
+        $incomingConsultations = \App\Models\Konsultasi::where('konsultan_id', $user->id)
+            ->whereIn('status', ['pending', 'aktif'])
+            ->with(['user', 'layanan'])
+            ->orderBy('jadwal', 'asc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_user' => $item->user ? $item->user->nama : '-',
+                    'topik' => $item->catatan ?? '-',
+                    'status' => $item->status,
+                    'tanggal' => $item->jadwal ? \Carbon\Carbon::parse($item->jadwal)->translatedFormat('d F Y') : '-',
+                    'jam' => $item->jadwal ? \Carbon\Carbon::parse($item->jadwal)->format('H:i') : '-',
+                    'layanan' => $item->layanan ? $item->layanan->nama : '-',
+                ];
+            });
 
         return Inertia::render('Konsultan/Dashboard', [
             'konsultan' => $user->only(
@@ -119,7 +165,45 @@ class KonsultanController extends Controller
                 'no_telepon'
             ),
 
-            'totalKlien' => $totalKlien,
+            'stats' => [
+                'total_jadwal' => $totalJadwal,
+                'total_klien' => $totalKlien,
+                'total_selesai' => $totalSelesai,
+                'total_pendapatan' => $totalPendapatan,
+            ],
+
+            'incomingConsultations' => $incomingConsultations,
         ]);
+    }
+
+    /**
+     * Update status konsultasi pelanggan.
+     * PATCH /konsultan/konsultasi/{id}/status
+     */
+    public function updateKonsultasiStatus(Request $request, $id): \Illuminate\Http\RedirectResponse
+    {
+        $request->validate([
+            'status' => 'required|in:aktif,selesai,tolak',
+        ]);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $konsultasi = \App\Models\Konsultasi::where('konsultan_id', $user->id)
+            ->findOrFail($id);
+
+        if ($request->status === 'tolak') {
+            $konsultasi->delete();
+
+            return back()->with('success', 'Permintaan konsultasi berhasil ditolak dan dihapus.');
+        }
+
+        $konsultasi->update(['status' => $request->status]);
+
+        if ($request->status === 'aktif') {
+            return back()->with('success', 'Permintaan konsultasi diterima. Pelanggan akan dihubungi untuk konfirmasi.');
+        }
+
+        return back()->with('success', 'Konsultasi ditandai selesai.');
     }
 }

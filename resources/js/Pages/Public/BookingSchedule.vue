@@ -3,9 +3,20 @@ import { Head, router } from '@inertiajs/vue3';
 import PublicNavbar from '@/Components/PublicNavbar.vue';
 import { ref } from 'vue';
 
-defineProps({
-    id: String
+const props = defineProps({
+    id: String,
+    konsultan: Object,
+    layanan: Object,
 });
+
+const formatPrice = (price) => {
+    if (!price) return '-';
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(price);
+};
 
 const jadwal = [
     '09:00',
@@ -159,11 +170,11 @@ const lanjutCheckout = (id) => {
 
                             <div>
                                 <h3 class="font-bold">
-                                    Dr. Budi Santoso
+                                    {{ konsultan ? konsultan.nama : 'Dr. Budi Santoso' }}
                                 </h3>
 
                                 <p class="text-gray-500 text-sm">
-                                    Konsultan Investasi
+                                    {{ layanan ? layanan.nama_layanan : 'Konsultan Investasi' }}
                                 </p>
                             </div>
 
@@ -207,7 +218,7 @@ const lanjutCheckout = (id) => {
                                 </span>
 
                                 <span class="font-semibold">
-                                    Rp750.000
+                                    {{ formatPrice(layanan ? layanan.harga : 750000) }}
                                 </span>
                             </div>
 

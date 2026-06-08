@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
+import { Head, useForm, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 const props = defineProps({
@@ -9,7 +9,20 @@ const props = defineProps({
         required: true,
     },
 
-    totalKlien: Number,
+    stats: {
+        type: Object,
+        default: () => ({
+            total_jadwal: 0,
+            total_klien: 0,
+            total_selesai: 0,
+            total_pendapatan: 0,
+        }),
+    },
+
+    incomingConsultations: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 // Toggle Status
@@ -29,6 +42,18 @@ const toggleStatus = () => {
     });
 };
 
+const consultationForm = useForm();
+
+const changeStatus = (id, status) => {
+    if (!confirm('Yakin ingin mengubah status konsultasi?')) return;
+
+    router.patch(route('konsultan.konsultasi.status', id), { status }, {
+        onSuccess: () => {
+            location.reload();
+        },
+    });
+};
+
 </script>
 
 <template>
@@ -42,7 +67,7 @@ const toggleStatus = () => {
                 <!-- Welcome -->
                 <div class="mb-6 rounded-lg bg-indigo-600 p-6 text-white shadow">
                     <h3 class="text-2xl font-bold">Selamat datang, {{ konsultan.nama }}! 👋</h3>
-                    <p class="mt-1 text-indigo-100">Panel kontrol administrator PAHAMUANG.</p>
+                    <p class="mt-1 text-indigo-100">Panel kontrol konsultan PAHAMUANG.</p>
                 </div>
 
                 <!-- Status Card -->
@@ -126,7 +151,7 @@ const toggleStatus = () => {
                 <!-- Stats -->
                 <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
 
-                    <!-- Sesi -->
+                    <!-- Jadwal -->
                     <div
                         class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
                     >
@@ -141,34 +166,33 @@ const toggleStatus = () => {
                         </div>
 
                         <h2 class="text-4xl font-bold text-gray-900">
-                            2
+                            {{ stats.total_jadwal }}
                         </h2>
 
                         <p class="mt-2 text-gray-500">
-                            Sesi Minggu Ini
+                            Jadwal konsultasi mendatang
                         </p>
                     </div>
 
-                    <!-- Pendapatan -->
+                    <!-- Selesai -->
                     <div
                         class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
                     >
                         <div
                             class="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100"
                         >
-                            <img
-                                src="/images/money.png"
-                                alt="Calendar"
-                                class="h-7 w-7 object-contain"
-                            />
+                            <svg class="h-7 w-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
+                            </svg>
                         </div>
 
                         <h2 class="text-4xl font-bold text-gray-900">
-                            Rp 750.000
+                            {{ stats.total_selesai }}
                         </h2>
 
                         <p class="mt-2 text-gray-500">
-                            Pendapatan Berjalan
+                            Konsultasi selesai
                         </p>
                     </div>
 
@@ -181,18 +205,89 @@ const toggleStatus = () => {
                         >
                             <img
                                 src="/images/client.png"
-                                alt="Calendar"
+                                alt="Client"
                                 class="h-7 w-7 object-contain"
                             />
                         </div>
 
                         <h2 class="text-4xl font-bold text-gray-900">
-                            1
+                            {{ stats.total_klien }}
                         </h2>
 
                         <p class="mt-2 text-gray-500">
-                            Klien Terkonfirmasi
+                            Total klien unik yang ditangani
                         </p>
+                    </div>
+                </div>
+
+                <!-- Incoming konsultasi -->
+                <div class="mb-8 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900">Permintaan Konsultasi Masuk</h2>
+                            <p class="mt-1 text-gray-500">
+                                Tinjau permintaan pelanggan dan kelola statusnya.
+                            </p>
+                        </div>
+                        <span class="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
+                            {{ incomingConsultations.length }} permintaan aktif
+                        </span>
+                    </div>
+
+                    <div v-if="!incomingConsultations.length" class="rounded-2xl border border-dashed border-gray-200 p-8 text-center text-gray-500">
+                        Tidak ada permintaan konsultasi baru saat ini.
+                    </div>
+
+                    <div v-else class="space-y-4">
+                        <div
+                            v-for="item in incomingConsultations"
+                            :key="item.id"
+                            class="rounded-2xl border border-gray-200 bg-gray-50 p-5"
+                        >
+                            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <span class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-gray-700 shadow-sm">
+                                            {{ item.status === 'pending' ? 'Pending' : 'Aktif' }}
+                                        </span>
+                                        <span class="text-sm text-gray-500">{{ item.layanan }}</span>
+                                    </div>
+
+                                    <h3 class="mt-3 text-xl font-semibold text-gray-900">{{ item.nama_user }}</h3>
+                                    <p class="text-sm text-gray-600">Topik: {{ item.topik }}</p>
+                                    <p class="mt-3 text-sm text-gray-500">
+                                        Jadwal: {{ item.tanggal }} · {{ item.jam }}
+                                    </p>
+                                </div>
+
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <button
+                                        v-if="item.status === 'pending'"
+                                        @click="changeStatus(item.id, 'aktif')"
+                                        :disabled="consultationForm.processing"
+                                        class="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        Terima
+                                    </button>
+                                    <button
+                                        v-if="item.status === 'pending'"
+                                        @click="changeStatus(item.id, 'tolak')"
+                                        :disabled="consultationForm.processing"
+                                        class="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        Tolak
+                                    </button>
+                                    <button
+                                        v-if="item.status === 'aktif'"
+                                        @click="changeStatus(item.id, 'selesai')"
+                                        :disabled="consultationForm.processing"
+                                        class="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        Selesaikan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

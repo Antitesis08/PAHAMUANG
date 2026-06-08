@@ -1,10 +1,60 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, useForm } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 import PublicNavbar from '@/Components/PublicNavbar.vue';
+
+const props = defineProps({
+    id: String,
+    date: String,
+    time: String,
+    topic: String,
+    konsultan: Object,
+    layanan: Object,
+    auth: Object,
+});
 
 const paymentMethod = ref('');
 const paymentDetail = ref(null);
+
+const form = useForm({
+    name: props.auth?.user?.nama || '',
+    email: props.auth?.user?.email || '',
+    phone: props.auth?.user?.no_telepon || '',
+    topic: props.topic || '',
+    date: props.date || '',
+    time: props.time || '',
+    payment_method: '',
+});
+
+// Watch payment method and detail to keep form in sync
+watch(paymentMethod, (newVal) => {
+    form.payment_method = newVal;
+});
+watch(paymentDetail, (newVal) => {
+    if (newVal) {
+        form.payment_method = paymentMethod.value + ' - ' + newVal;
+    } else {
+        form.payment_method = paymentMethod.value;
+    }
+});
+
+const submitCheckout = () => {
+    if (!form.payment_method) {
+        alert('Silakan pilih metode pembayaran terlebih dahulu');
+        return;
+    }
+
+    form.post(route('public.checkout.store', props.id));
+};
+
+const formatPrice = (price) => {
+    if (!price) return '-';
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(price);
+};
 </script>
 
 <template>
@@ -66,6 +116,7 @@ const paymentDetail = ref(null);
 
                             <input
                                 type="text"
+                                v-model="form.name"
                                 class="w-full border border-gray-300 rounded-xl p-4"
                             />
                         </div>
@@ -77,6 +128,7 @@ const paymentDetail = ref(null);
 
                             <input
                                 type="email"
+                                v-model="form.email"
                                 class="w-full border border-gray-300 rounded-xl p-4"
                             />
                         </div>
@@ -88,6 +140,7 @@ const paymentDetail = ref(null);
 
                             <input
                                 type="text"
+                                v-model="form.phone"
                                 class="w-full border border-gray-300 rounded-xl p-4"
                             />
                         </div>
@@ -100,6 +153,7 @@ const paymentDetail = ref(null);
 
                             <textarea
                                 rows="5"
+                                v-model="form.topic"
                                 placeholder="Tulis topik atau kebutuhan konsultasi..."
                                 class="w-full border border-gray-300 rounded-xl p-4"
                             ></textarea>
@@ -294,15 +348,17 @@ const paymentDetail = ref(null);
 
                         <div class="flex items-center gap-4">
 
-                            <div class="w-16 h-16 rounded-full bg-gray-300"></div>
+                            <div class="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center text-3xl font-bold text-gray-500">
+                                👨‍💼
+                            </div>
 
                             <div>
                                 <h3 class="font-bold">
-                                    Dr. Budi Santoso
+                                    {{ konsultan ? konsultan.nama : 'Dr. Budi Santoso' }}
                                 </h3>
 
                                 <p class="text-gray-500 text-sm">
-                                    Konsultan Investasi
+                                    {{ layanan ? layanan.nama_layanan : 'Konsultan Investasi' }}
                                 </p>
                             </div>
 
@@ -316,7 +372,7 @@ const paymentDetail = ref(null);
                                 </span>
 
                                 <span>
-                                    Rp750.000
+                                    {{ formatPrice(layanan ? layanan.harga : 750000) }}
                                 </span>
                             </div>
 
@@ -337,7 +393,7 @@ const paymentDetail = ref(null);
                                 </span>
 
                                 <span class="font-semibold">
-                                    {{ paymentDetail || '-' }}
+                                    {{ paymentDetail || paymentMethod || '-' }}
                                 </span>
                             </div>
 
@@ -348,7 +404,7 @@ const paymentDetail = ref(null);
                                 <span>Total</span>
 
                                 <span class="text-indigo-700">
-                                    Rp755.000
+                                    {{ formatPrice((layanan ? parseFloat(layanan.harga) : 750000) + 5000) }}
                                 </span>
 
                             </div>
@@ -356,9 +412,12 @@ const paymentDetail = ref(null);
                         </div>
 
                         <button
+                            type="button"
+                            @click="submitCheckout"
+                            :disabled="form.processing"
                             class="w-full mt-10 bg-green-500 hover:bg-green-600 transition text-white py-4 rounded-xl font-semibold"
                         >
-                            Bayar Sekarang
+                            {{ form.processing ? 'Memproses...' : 'Bayar Sekarang' }}
                         </button>
 
                     </div>

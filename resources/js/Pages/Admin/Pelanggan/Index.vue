@@ -1,10 +1,37 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
-defineProps({
-    pelanggan: Array,
+const props = defineProps({
+    pelanggan: {
+        type: Array,
+        default: () => [],
+    },
 });
+
+const search = ref('');
+
+const filteredPelanggan = computed(() => {
+    return props.pelanggan.filter((user) => {
+        const query = search.value.toLowerCase();
+        return (
+            user.nama?.toLowerCase().includes(query) ||
+            user.email?.toLowerCase().includes(query) ||
+            (user.no_telepon ?? '').toLowerCase().includes(query)
+        );
+    });
+});
+
+const form = useForm();
+
+const deletePelanggan = (id) => {
+    if (!confirm('Yakin ingin menghapus pelanggan ini?')) {
+        return;
+    }
+
+    form.delete(route('admin.users.destroy', id));
+};
 </script>
 
 <template>
@@ -30,28 +57,38 @@ defineProps({
                 <!-- Search -->
                 <div class="mb-6 rounded-2xl bg-white p-5 shadow-sm">
 
-                    <div class="relative w-full md:w-96">
+                    <div class="md:flex md:items-center md:justify-between">
+                        <div class="relative w-full md:w-96">
 
-                        <input
-                            type="text"
-                            placeholder="Cari pelanggan berdasarkan nama atau email..."
-                            class="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm focus:border-blue-500 focus:ring-blue-500"
-                        />
-
-                        <svg
-                            class="absolute left-4 top-3.5 h-5 w-5 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"
+                            <input
+                                v-model="search"
+                                type="text"
+                                placeholder="Cari pelanggan berdasarkan nama, email, atau telepon..."
+                                class="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-4 text-sm focus:border-blue-500 focus:ring-blue-500"
                             />
-                        </svg>
 
+                            <svg
+                                class="absolute left-4 top-3.5 h-5 w-5 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                            </svg>
+
+                        </div>
+
+                        <Link
+                            :href="route('admin.users.create') + '?role=3'"
+                            class="mt-4 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 md:mt-0"
+                        >
+                            Tambah Pelanggan
+                        </Link>
                     </div>
 
                 </div>
@@ -84,7 +121,7 @@ defineProps({
                             <tbody class="divide-y divide-gray-100 bg-white">
 
                                 <tr
-                                    v-for="user in pelanggan"
+                                    v-for="user in filteredPelanggan"
                                     :key="user.id"
                                     class="transition hover:bg-gray-50"
                                 >
@@ -170,29 +207,8 @@ defineProps({
 
                                         <div class="flex items-center justify-center gap-3">
 
-                                            <!-- Detail -->
-                                            <button
-                                                class="text-emerald-500 transition hover:scale-110"
-                                            >
-                                                <svg
-                                                    class="h-5 w-5"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M15 12H9m12
-                                                        0A9 9 0 1112 3a9
-                                                        9 0 019 9z"
-                                                    />
-                                                </svg>
-                                            </button>
-
-                                            <!-- Edit -->
-                                            <button
+                                            <Link
+                                                :href="route('admin.users.edit', user.id)"
                                                 class="text-blue-500 transition hover:scale-110"
                                             >
                                                 <svg
@@ -209,10 +225,10 @@ defineProps({
                                                         0v14m7-7H5"
                                                     />
                                                 </svg>
-                                            </button>
+                                            </Link>
 
-                                            <!-- Delete -->
                                             <button
+                                                @click="deletePelanggan(user.id)"
                                                 class="text-red-500 transition hover:scale-110"
                                             >
                                                 <svg
@@ -240,6 +256,12 @@ defineProps({
 
                                     </td>
 
+                                </tr>
+
+                                <tr v-if="filteredPelanggan.length === 0">
+                                    <td colspan="7" class="px-6 py-10 text-center text-gray-400">
+                                        Tidak ada pelanggan yang sesuai.
+                                    </td>
                                 </tr>
 
                             </tbody>

@@ -55,6 +55,13 @@ const selectService = (id) => {
         <!-- Navbar -->
         <PublicNavbar />
 
+        <!-- Success Alert if any -->
+        <div v-if="$page.props.flash && $page.props.flash.success" class="max-w-7xl mx-auto px-6 mt-4">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl relative" role="alert">
+                <span class="block sm:inline">{{ $page.props.flash.success }}</span>
+            </div>
+        </div>
+
         <!-- Hero Section -->
         <section class="bg-[#0B56D5] text-white pt-32 pb-24 relative overflow-hidden">
             <!-- Decorative Background Element -->
