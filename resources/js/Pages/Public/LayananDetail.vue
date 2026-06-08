@@ -32,14 +32,14 @@ const konsultan = [
         <PublicNavbar />
 
         <!-- HERO -->
-        <section class="bg-indigo-700 text-white py-20">
+        <section class="bg-brand-focus text-white py-20">
             <div class="max-w-7xl mx-auto px-6">
 
                 <h1 class="text-5xl font-extrabold capitalize">
                     {{ slug }}
                 </h1>
 
-                <p class="mt-5 text-indigo-100 text-lg max-w-2xl">
+                <p class="mt-5 text-slate-100 text-lg max-w-2xl">
                     Temukan konsultan profesional terbaik sesuai layanan yang Anda butuhkan.
                 </p>
 
@@ -54,10 +54,12 @@ const konsultan = [
                 <div
                     v-for="item in konsultan"
                     :key="item.id"
-                    class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition flex flex-col lg:flex-row gap-8 items-center"
+                    class="card p-8 hover:shadow-lg transition flex flex-col lg:flex-row gap-8 items-center"
                 >
 
-                    <div class="w-36 h-36 rounded-2xl bg-indigo-100"></div>
+                    <div class="w-36 h-36 rounded-2xl bg-brand-focus/10 flex items-center justify-center">
+                        <svg class="w-14 h-14 text-brand-focus" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zM6 18c0-2.67 5.33-4 6-4s6 1.33 6 4v2H6v-2z"/></svg>
+                    </div>
 
                     <div class="flex-1">
 
@@ -73,7 +75,8 @@ const konsultan = [
                                 </p>
                             </div>
 
-                            <span class="bg-green-500 text-white px-4 py-2 rounded-full text-sm">
+                            <span class="inline-flex items-center gap-2 bg-success/10 text-success border border-success/20 text-sm font-bold px-3 py-2 rounded-full">
+                                <span class="w-2 h-2 rounded-full bg-success"></span>
                                 Tersedia
                             </span>
 
@@ -106,7 +109,7 @@ const konsultan = [
                                     Tarif
                                 </p>
 
-                                <h3 class="font-bold text-2xl mt-2 text-indigo-700">
+                                <h3 class="font-bold text-2xl mt-2 text-brand-focus">
                                     {{ item.harga }}
                                 </h3>
                             </div>
@@ -119,14 +122,14 @@ const konsultan = [
 
                         <Link
                             :href="route('public.konsultan.detail', item.id)"
-                            class="bg-indigo-700 hover:bg-indigo-800 transition text-white px-8 py-4 rounded-2xl text-center font-semibold"
+                            class="btn-primary px-8 py-4 rounded-2xl text-center font-semibold"
                         >
                             Lihat Profil
                         </Link>
 
                         <Link
                             :href="route('public.booking', item.id)"
-                            class="border border-indigo-700 text-indigo-700 hover:bg-indigo-50 transition px-8 py-4 rounded-2xl text-center font-semibold"
+                            class="inline-flex items-center justify-center rounded-2xl border border-brand-focus text-brand-focus hover:bg-brand-focus/5 px-8 py-4 text-center font-semibold transition-colors duration-300"
                         >
                             Booking Sekarang
                         </Link>

@@ -4,6 +4,7 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link } from '@inertiajs/vue3';
+import BrandLogo from '@/Components/BrandLogo.vue';
 
 const showingNavigationDropdown = ref(false);
 </script>
@@ -13,7 +14,7 @@ const showingNavigationDropdown = ref(false);
         <div class="min-h-screen bg-gray-100">
 
             <!-- Navbar -->
-            <nav class="border-b border-gray-200 bg-white shadow-sm">
+            <nav class="border-b border-gray-100 bg-bg-50 shadow-sm">
                 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div class="flex h-16 justify-between">
 
@@ -26,27 +27,7 @@ const showingNavigationDropdown = ref(false);
                                 class="flex items-center gap-3"
                             >
 
-                                <!-- Logo Image -->
-                                <div
-                                    class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border-2 border-blue-500 shadow-md"
-                                >
-                                    <img
-                                        src="/images/logo.png"
-                                        alt="Logo PAHAMUANG"
-                                        class="h-full w-full object-cover"
-                                    />
-                                </div>
-
-                                <!-- Text -->
-                                <div class="flex flex-col leading-tight">
-                                    <span class="text-lg font-bold tracking-wide text-blue-700">
-                                        PAHAMUANG
-                                    </span>
-
-                                    <span class="text-xs text-gray-500">
-                                        Financial Consultation Platform
-                                    </span>
-                                </div>
+                                <BrandLogo />
 
                             </Link>
                         </div>
@@ -63,12 +44,12 @@ const showingNavigationDropdown = ref(false);
                                         <span class="inline-flex rounded-xl">
                                             <button
                                                 type="button"
-                                                class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-blue-600 focus:outline-none"
+                                                class="flex items-center gap-3 rounded-xl border border-gray-200 bg-bg-50 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-bg-100 hover:text-brand-focus focus:outline-none"
                                             >
 
                                                 <!-- Avatar -->
                                                 <div
-                                                    class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700"
+                                                    class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-focus/10 text-sm font-bold text-brand-focus"
                                                 >
                                                     {{
                                                         $page.props.auth.user.name

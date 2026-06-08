@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import PublicNavbar from '@/Components/PublicNavbar.vue';
 
@@ -54,22 +54,38 @@ const filters = reactive({
     status: 'semua'
 });
 
-// Computed properties for filtered list
+// Applied filters used after a short debounce to simulate smooth transitions
+const appliedFilters = reactive({ ...filters });
+const isFiltering = ref(false);
+let filterTimer = null;
+
+watch(filters, () => {
+    isFiltering.value = true;
+    if (filterTimer) clearTimeout(filterTimer);
+    filterTimer = setTimeout(() => {
+        appliedFilters.harga = filters.harga;
+        appliedFilters.rating = filters.rating;
+        appliedFilters.status = filters.status;
+        isFiltering.value = false;
+    }, 300);
+}, { deep: true });
+
+// Computed properties for filtered list (uses appliedFilters for smooth UX)
 const filteredKonsultans = computed(() => {
     return konsultans.value.filter(k => {
         // Status Filter
-        if (filters.status === 'tersedia' && !k.isAvailable) return false;
-        if (filters.status === 'sibuk' && k.isAvailable) return false;
+        if (appliedFilters.status === 'tersedia' && !k.isAvailable) return false;
+        if (appliedFilters.status === 'sibuk' && k.isAvailable) return false;
 
         // Rating Filter
-        if (filters.rating === '4.5' && k.rating < 4.5) return false;
-        if (filters.rating === '4.7' && k.rating < 4.7) return false;
-        if (filters.rating === '4.9' && k.rating < 4.9) return false;
+        if (appliedFilters.rating === '4.5' && k.rating < 4.5) return false;
+        if (appliedFilters.rating === '4.7' && k.rating < 4.7) return false;
+        if (appliedFilters.rating === '4.9' && k.rating < 4.9) return false;
 
         // Harga Filter
-        if (filters.harga === '<700k' && k.harga >= 700000) return false;
-        if (filters.harga === '700k-800k' && (k.harga < 700000 || k.harga > 800000)) return false;
-        if (filters.harga === '>=800k' && k.harga < 800000) return false;
+        if (appliedFilters.harga === '<700k' && k.harga >= 700000) return false;
+        if (appliedFilters.harga === '700k-800k' && (k.harga < 700000 || k.harga > 800000)) return false;
+        if (appliedFilters.harga === '>=800k' && k.harga < 800000) return false;
 
         return true;
     });
@@ -87,7 +103,7 @@ const formatPrice = (price) => {
 <template>
     <Head title="Pilih Konsultan" />
 
-    <div class="min-h-screen bg-gray-50 font-sans text-gray-800">
+    <div class="min-h-screen bg-bg-50 font-sans text-gray-800">
         <PublicNavbar />
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -96,9 +112,9 @@ const formatPrice = (price) => {
                 
                 <!-- LEFT SIDEBAR: FILTERS -->
                 <div class="w-full lg:w-1/4 flex-shrink-0">
-                    <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 sticky top-24">
+                    <div class="bg-bg-50 rounded-2xl shadow-sm p-6 border border-gray-100 sticky top-24">
                         <div class="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#0B56D5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-focus" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                             </svg>
                             <h2 class="text-lg font-bold text-gray-900">Filter</h2>
@@ -109,19 +125,19 @@ const formatPrice = (price) => {
                             <h3 class="font-semibold text-gray-900 mb-3 text-sm">Rentang Harga</h3>
                             <div class="space-y-2">
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.harga" value="semua" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.harga" value="semua" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="text-gray-600 text-sm group-hover:text-gray-900">Semua Harga</span>
                                 </label>
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.harga" value="<700k" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.harga" value="<700k" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="text-gray-600 text-sm group-hover:text-gray-900">&lt; Rp 700.000</span>
                                 </label>
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.harga" value="700k-800k" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.harga" value="700k-800k" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="text-gray-600 text-sm group-hover:text-gray-900">Rp 700.000 - Rp 800.000</span>
                                 </label>
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.harga" value=">=800k" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.harga" value=">=800k" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="text-gray-600 text-sm group-hover:text-gray-900">&ge; Rp 800.000</span>
                                 </label>
                             </div>
@@ -132,19 +148,19 @@ const formatPrice = (price) => {
                             <h3 class="font-semibold text-gray-900 mb-3 text-sm">Rating Minimum</h3>
                             <div class="space-y-2">
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.rating" value="semua" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.rating" value="semua" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="text-gray-600 text-sm group-hover:text-gray-900">Semua Rating</span>
                                 </label>
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.rating" value="4.5" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.rating" value="4.5" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="text-gray-600 text-sm group-hover:text-gray-900">4.5+ ★</span>
                                 </label>
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.rating" value="4.7" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.rating" value="4.7" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="text-gray-600 text-sm group-hover:text-gray-900">4.7+ ★</span>
                                 </label>
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.rating" value="4.9" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.rating" value="4.9" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="text-gray-600 text-sm group-hover:text-gray-900">4.9+ ★</span>
                                 </label>
                             </div>
@@ -155,17 +171,17 @@ const formatPrice = (price) => {
                             <h3 class="font-semibold text-gray-900 mb-3 text-sm">Ketersediaan</h3>
                             <div class="space-y-2">
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.status" value="semua" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.status" value="semua" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="text-gray-600 text-sm group-hover:text-gray-900">Semua Status</span>
                                 </label>
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.status" value="tersedia" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.status" value="tersedia" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="flex items-center gap-2 text-gray-600 text-sm group-hover:text-gray-900">
-                                        <span class="w-2 h-2 rounded-full bg-[#00B16A]"></span> Tersedia
+                                        <span class="w-2 h-2 rounded-full bg-success"></span> Tersedia
                                     </span>
                                 </label>
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="radio" v-model="filters.status" value="sibuk" class="w-4 h-4 text-[#0B56D5] focus:ring-[#0B56D5] border-gray-300">
+                                    <input type="radio" v-model="filters.status" value="sibuk" class="w-4 h-4 text-brand-focus focus:ring-brand-focus border-gray-300">
                                     <span class="flex items-center gap-2 text-gray-600 text-sm group-hover:text-gray-900">
                                         <span class="w-2 h-2 rounded-full bg-red-500"></span> Sibuk
                                     </span>
@@ -181,18 +197,29 @@ const formatPrice = (price) => {
                     <div class="mb-8">
                         <h1 class="text-3xl font-bold text-gray-900 mb-2">Pilih Konsultan Keuangan</h1>
                         <p class="text-gray-500 text-lg">Temukan pakar keuangan bersertifikat yang tepat untuk kebutuhan Anda.</p>
-                        <p class="text-[#0B56D5] font-medium text-sm mt-4">
+                        <p class="text-brand-focus font-medium text-sm mt-4">
                             Menampilkan {{ filteredKonsultans.length }} konsultan
                         </p>
                     </div>
 
                     <!-- Grid -->
-                    <div v-if="filteredKonsultans.length > 0" class="grid md:grid-cols-2 gap-6">
-                        <div
-                            v-for="item in filteredKonsultans"
-                            :key="item.id"
-                            class="bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100 transition-all duration-300 flex flex-col relative group"
+                    <div>
+                        <TransitionGroup
+                            tag="div"
+                            class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                            enter-active-class="transition transform duration-300"
+                            enter-from-class="opacity-0 translate-y-2"
+                            enter-to-class="opacity-100 translate-y-0"
+                            leave-active-class="transition transform duration-300"
+                            leave-from-class="opacity-100 translate-y-0"
+                            leave-to-class="opacity-0 -translate-y-2"
                         >
+                            <template v-if="!isFiltering">
+                                <div
+                                    v-for="item in filteredKonsultans"
+                                    :key="item.id"
+                                    class="card p-6 hover:-translate-y-1 hover:shadow-lg flex flex-col relative group"
+                                >
                             <!-- Badge -->
                             <div class="absolute top-4 right-4 z-10">
                                 <span v-if="item.isAvailable" class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
@@ -205,12 +232,12 @@ const formatPrice = (price) => {
                                 </span>
                             </div>
 
-                            <div class="p-6 flex-1">
+                            <div class="flex-1">
                                 <!-- Avatar & Identity -->
-                                <div class="flex gap-4 mb-4">
+                                <div class="flex gap-4 mb-4 items-center">
                                     <img :src="item.avatar" :alt="item.displayName" class="w-16 h-16 rounded-full ring-2 ring-gray-100 object-cover flex-shrink-0" />
                                     <div>
-                                        <h2 class="text-lg font-bold text-gray-900 leading-tight group-hover:text-[#0B56D5] transition-colors">
+                                        <h2 class="text-lg font-bold text-gray-900 leading-tight group-hover:text-brand-focus transition-colors">
                                             {{ item.displayName }}
                                         </h2>
                                         <p class="text-sm text-gray-500 mt-1 font-medium">{{ item.roleTitle }}</p>
@@ -232,7 +259,7 @@ const formatPrice = (price) => {
                                     <span 
                                         v-for="(spec, index) in item.specialties" 
                                         :key="index"
-                                        class="bg-blue-50 text-[#0B56D5] border border-blue-100 text-xs font-medium px-2.5 py-1 rounded-full"
+                                        class="chip text-brand-focus border-brand-focus/20 hover:bg-brand-focus/5"
                                     >
                                         {{ spec }}
                                     </span>
@@ -240,7 +267,7 @@ const formatPrice = (price) => {
                             </div>
 
                             <!-- Footer -->
-                            <div class="border-t border-gray-100 p-6 bg-gray-50/50 rounded-b-2xl flex items-center justify-between">
+                            <div class="border-t border-gray-100 p-6 bg-gray-50/50 rounded-b-2xl flex items-center justify-between mt-4">
                                 <div>
                                     <p class="text-xs text-gray-400 mb-1">Tarif Konsultasi</p>
                                     <p class="font-bold text-gray-900">
@@ -249,16 +276,46 @@ const formatPrice = (price) => {
                                 </div>
                                 <Link
                                     :href="route('public.konsultan.detail', item.id)"
-                                    class="bg-[#0B56D5] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+                                    class="btn-primary px-4 py-2 text-sm rounded-lg"
                                 >
                                     Lihat Profil
                                 </Link>
                             </div>
-                        </div>
+                                </div>
+                            </template>
+
+                            <!-- Skeleton placeholders during filtering -->
+                            <template v-if="isFiltering">
+                                <div v-for="n in 6" :key="`skeleton-${n}`" class="card p-6 flex flex-col gap-4">
+                                    <div class="flex gap-4 mb-4 items-center">
+                                        <div class="w-16 h-16 rounded-full bg-slate-100 skeleton"></div>
+                                        <div class="flex-1">
+                                            <div class="h-4 w-3/4 bg-slate-100 skeleton mb-2"></div>
+                                            <div class="h-3 w-1/2 bg-slate-100 skeleton"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="h-3 w-2/3 bg-slate-100 skeleton mb-2"></div>
+                                    <div class="flex gap-2">
+                                        <div class="h-8 w-20 bg-slate-100 skeleton rounded-full"></div>
+                                        <div class="h-8 w-20 bg-slate-100 skeleton rounded-full"></div>
+                                    </div>
+
+                                    <div class="mt-auto border-t border-gray-100 p-4 bg-bg-50/60 rounded-b-2xl flex items-center justify-between">
+                                        <div>
+                                            <div class="h-3 w-24 bg-slate-100 skeleton mb-2"></div>
+                                            <div class="h-4 w-20 bg-slate-100 skeleton"></div>
+                                        </div>
+                                        <div class="h-9 w-28 bg-slate-100 skeleton rounded-lg"></div>
+                                    </div>
+                                </div>
+                            </template>
+
+                        </TransitionGroup>
                     </div>
                     
                     <!-- Empty State -->
-                    <div v-else class="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+                    <div v-if="filteredKonsultans.length === 0 && !isFiltering" class="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>

@@ -1,7 +1,23 @@
+<script setup>
+const props = defineProps({
+  type: { type: String, default: 'button' },
+  loading: { type: Boolean, default: false }
+});
+</script>
+
 <template>
     <button
-        class="inline-flex items-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-gray-700 focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-gray-900"
+        :type="props.type"
+        :disabled="props.loading"
+        class="btn-primary disabled:opacity-60"
     >
-        <slot />
+        <span v-if="props.loading" class="inline-flex items-center gap-3">
+            <span class="spinner"></span>
+            <span class="text-sm">Loading...</span>
+        </span>
+
+        <span v-else>
+            <slot />
+        </span>
     </button>
 </template>

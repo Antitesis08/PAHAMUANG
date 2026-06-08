@@ -1,20 +1,17 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import BrandLogo from '@/Components/BrandLogo.vue';
 </script>
 
 <template>
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <nav class="bg-bg-50 border-b border-gray-100 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
             <div class="flex items-center gap-2">
 
-                <div class="w-8 h-8 bg-indigo-600 rounded-md flex items-center justify-center text-white font-bold">
-                    P
-                </div>
-
-                <h1 class="font-bold text-xl text-indigo-700">
-                    PAHAMUANG
-                </h1>
+                <Link :href="route('dashboard')" class="inline-block">
+                    <BrandLogo />
+                </Link>
 
             </div>
 
@@ -22,28 +19,28 @@ import { Link } from '@inertiajs/vue3';
 
                 <Link
                     :href="route('dashboard')"
-                    class="hover:text-indigo-600 transition"
+                    class="hover:text-brand-focus transition-colors duration-300"
                 >
                     Beranda
                 </Link>
 
                 <Link
                     :href="route('public.konsultan')"
-                    class="hover:text-indigo-600 transition"
+                    class="hover:text-brand-focus transition-colors duration-300"
                 >
                     Konsultan
                 </Link>
 
                 <a
                     href="#"
-                    class="hover:text-indigo-600 transition"
+                    class="hover:text-brand-focus transition-colors duration-300"
                 >
                     About us
                 </a>
 
                 <Link
                     :href="route('login')"
-                    class="hover:text-indigo-600 transition"
+                    class="hover:text-brand-focus transition-colors duration-300"
                 >
                     Admin/konsultan
                 </Link>
