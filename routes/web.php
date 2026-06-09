@@ -172,6 +172,13 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/konsultan', [AdminController::class, 'indexKonsultan'])
             ->name('konsultan.index');
 
+        // Create konsultan (admin)
+        Route::get('/konsultan/create', [AdminController::class, 'createKonsultan'])
+            ->name('konsultan.create');
+
+        Route::post('/konsultan', [AdminController::class, 'storeKonsultan'])
+            ->name('konsultan.store');
+
         Route::get('/pelanggan', [AdminController::class, 'indexPelanggan'])
             ->name('pelanggan.index');
     });

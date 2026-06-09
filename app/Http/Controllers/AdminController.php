@@ -193,6 +193,44 @@ class AdminController extends Controller implements ApiInterface
 
     /**
      * =========================================================
+     * HALAMAN CREATE KONSULTAN (ADMIN)
+     * =========================================================
+     */
+    public function createKonsultan(): \Inertia\Response
+    {
+        return Inertia::render('Admin/Konsultan/Create');
+    }
+
+    /**
+     * =========================================================
+     * SIMPAN KONSULTAN (ADMIN)
+     * =========================================================
+     */
+    public function storeKonsultan(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'email'      => 'required|email|unique:users,email',
+            'password'   => 'required|string|min:8',
+            'nama'       => 'nullable|string|max:255',
+            'no_telepon' => 'nullable|string|max:20',
+        ]);
+
+        User::create([
+            'nama'         => $validated['nama'] ?? ($validated['email'] ?? 'Konsultan'),
+            'email'        => $validated['email'],
+            'password'     => Hash::make($validated['password']),
+            'role'         => 2, // konsultan
+            'no_telepon'   => $validated['no_telepon'] ?? null,
+            'is_available' => false,
+        ]);
+
+        return redirect()
+            ->route('admin.konsultan.index')
+            ->with('success', 'Konsultan berhasil ditambahkan.');
+    }
+
+    /**
+     * =========================================================
      * DAFTAR PELANGGAN
      * =========================================================
      */

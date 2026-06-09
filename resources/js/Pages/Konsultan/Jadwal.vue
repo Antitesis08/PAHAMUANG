@@ -137,20 +137,7 @@ defineProps({
                             </div>
                         </div>
 
-                        <!-- Action -->
-                        <div class="mt-6 flex gap-3">
-                            <button
-                                class="flex-1 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-                            >
-                                Detail
-                            </button>
-
-                            <button
-                                class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-                            >
-                                Chat
-                            </button>
-                        </div>
+                        <!-- Action buttons removed: only schedule info shown -->
                     </div>
                 </div>
 
