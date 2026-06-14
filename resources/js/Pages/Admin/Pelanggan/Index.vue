@@ -121,14 +121,14 @@ const deletePelanggan = (id) => {
                             <tbody class="divide-y divide-gray-100 bg-white">
 
                                 <tr
-                                    v-for="user in filteredPelanggan"
+                                    v-for="(user, index) in filteredPelanggan"
                                     :key="user.id"
                                     class="transition hover:bg-gray-50"
                                 >
 
                                     <!-- ID -->
                                     <td class="px-6 py-5 text-sm font-medium text-gray-700">
-                                        #{{ user.id }}
+                                        #{{ index + 1 }}
                                     </td>
 
                                     <!-- Nama -->

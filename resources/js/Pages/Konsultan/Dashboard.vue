@@ -43,11 +43,26 @@ const toggleStatus = () => {
 };
 
 const consultationForm = useForm();
+const rejectingId = ref(null);
+const rejectReasons = ref({});
+const statusLoading = ref(false);
 
-const changeStatus = (id, status) => {
+const openRejectPanel = (id) => {
+    rejectingId.value = id;
+    rejectReasons.value[id] = '';
+};
+
+const cancelReject = () => {
+    rejectingId.value = null;
+};
+
+const changeStatus = (id, status, alasan = null) => {
     if (!confirm('Yakin ingin mengubah status konsultasi?')) return;
 
-    router.patch(route('konsultan.konsultasi.status', id), { status }, {
+    statusLoading.value = true;
+
+    router.patch(route('konsultan.konsultasi.status', id), { status, alasan_tolak: alasan }, {
+        onFinish: () => { statusLoading.value = false; },
         onSuccess: () => {
             location.reload();
         },
@@ -264,15 +279,15 @@ const changeStatus = (id, status) => {
                                     <button
                                         v-if="item.status === 'pending'"
                                         @click="changeStatus(item.id, 'aktif')"
-                                        :disabled="consultationForm.processing"
+                                        :disabled="statusLoading"
                                         class="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         Terima
                                     </button>
                                     <button
                                         v-if="item.status === 'pending'"
-                                        @click="changeStatus(item.id, 'tolak')"
-                                        :disabled="consultationForm.processing"
+                                        @click="openRejectPanel(item.id)"
+                                        :disabled="statusLoading"
                                         class="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         Tolak
@@ -280,11 +295,36 @@ const changeStatus = (id, status) => {
                                     <button
                                         v-if="item.status === 'aktif'"
                                         @click="changeStatus(item.id, 'selesai')"
-                                        :disabled="consultationForm.processing"
+                                        :disabled="statusLoading"
                                         class="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         Selesaikan
                                     </button>
+                                </div>
+                                <div v-if="rejectingId === item.id" class="mt-4 rounded-2xl bg-white border border-red-100 p-4">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Alasan Tolak (opsional)</label>
+                                    <textarea
+                                        v-model="rejectReasons[item.id]"
+                                        rows="3"
+                                        class="w-full rounded-xl border border-gray-200 p-3 text-sm focus:border-red-500 focus:ring-red-500"
+                                        placeholder="Tulis alasan singkat penolakan..."
+                                    ></textarea>
+                                    <div class="mt-3 flex flex-wrap gap-3">
+                                        <button
+                                            @click="changeStatus(item.id, 'ditolak', rejectReasons[item.id])"
+                                            :disabled="statusLoading"
+                                            class="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Konfirmasi Tolak
+                                        </button>
+                                        <button
+                                            @click="cancelReject"
+                                            type="button"
+                                            class="rounded-full bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-300"
+                                        >
+                                            Batal
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

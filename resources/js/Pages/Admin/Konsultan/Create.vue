@@ -6,7 +6,8 @@ const form = useForm({
     email: '',
     password: '',
     nama: '',
-    no_telepon: ''
+    no_telepon: '',
+    tarif: 0,
 });
 
 const submit = () => {
@@ -48,6 +49,12 @@ const submit = () => {
                         <div>
                             <label class="block font-semibold mb-2">No. Telepon (opsional)</label>
                             <input v-model="form.no_telepon" type="text" class="w-full border border-gray-300 rounded-xl p-3" />
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold mb-2">Tarif per Jam / Rp (opsional)</label>
+                            <input v-model="form.tarif" type="number" min="0" class="w-full border border-gray-300 rounded-xl p-3" placeholder="Contoh: 500000" />
+                            <p class="text-xs text-gray-400 mt-1">Biarkan 0 jika belum ditentukan. Konsultan dapat mengisi sendiri nanti.</p>
                         </div>
 
                         <div class="mt-6 flex gap-3">

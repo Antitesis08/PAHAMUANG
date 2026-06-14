@@ -1,12 +1,16 @@
 <script setup>
 import { Head, router } from '@inertiajs/vue3';
 import PublicNavbar from '@/Components/PublicNavbar.vue';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps({
     id: String,
     konsultan: Object,
     layanan: Object,
+    bookedSlots: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const formatPrice = (price) => {
@@ -32,10 +36,40 @@ const selectedDate = ref('');
 const selectedTime = ref('');
 const topik = ref('');
 
-const lanjutCheckout = (id) => {
+// Calculate min date (today in local time YYYY-MM-DD)
+const getTodayDateString = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+const minDate = getTodayDateString();
 
+// Check if a time slot is booked for the currently selected date
+const isTimeSlotBooked = (jam) => {
+    if (!selectedDate.value) return false;
+    const datetimeString = `${selectedDate.value} ${jam}:00`;
+    return props.bookedSlots.some(slot => {
+        return slot.replace('T', ' ').startsWith(datetimeString);
+    });
+};
+
+// Reset selected time if it becomes booked on the newly selected date
+watch(selectedDate, () => {
+    if (selectedTime.value && isTimeSlotBooked(selectedTime.value)) {
+        selectedTime.value = '';
+    }
+});
+
+const lanjutCheckout = (id) => {
     if (!selectedDate.value || !selectedTime.value) {
         alert('Pilih tanggal dan jam terlebih dahulu');
+        return;
+    }
+
+    if (isTimeSlotBooked(selectedTime.value)) {
+        alert('Jadwal ini sudah terisi, silakan pilih jadwal lain.');
         return;
     }
 
@@ -104,6 +138,7 @@ const lanjutCheckout = (id) => {
                         <input
                             type="date"
                             v-model="selectedDate"
+                            :min="minDate"
                             class="w-full border border-gray-300 rounded-xl p-4"
                         />
 
@@ -122,15 +157,19 @@ const lanjutCheckout = (id) => {
                                 type="button"
                                 v-for="jam in jadwal"
                                 :key="jam"
+                                :disabled="isTimeSlotBooked(jam)"
                                 @click="selectedTime = jam"
                                 :class="[
-                                    'rounded-xl py-4 transition font-semibold border',
-                                    selectedTime === jam
-                                        ? 'bg-indigo-700 text-white border-indigo-700'
-                                        : 'border-gray-300 hover:bg-indigo-700 hover:text-white'
+                                    'rounded-xl py-4 transition font-semibold border text-center flex flex-col items-center justify-center',
+                                    isTimeSlotBooked(jam)
+                                        ? 'bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed line-through'
+                                        : selectedTime === jam
+                                            ? 'bg-indigo-700 text-white border-indigo-700'
+                                            : 'border-gray-300 hover:bg-indigo-700 hover:text-white'
                                 ]"
                             >
-                                {{ jam }}
+                                <span>{{ jam }}</span>
+                                <span v-if="isTimeSlotBooked(jam)" class="text-xs font-normal opacity-75 mt-0.5">(Terisi)</span>
                             </button>
 
                         </div>
@@ -218,7 +257,7 @@ const lanjutCheckout = (id) => {
                                 </span>
 
                                 <span class="font-semibold">
-                                    {{ formatPrice(layanan ? layanan.harga : 750000) }}
+                                    {{ formatPrice(konsultan ? (konsultan.tarif || (layanan ? layanan.harga : 0)) : 0) }}
                                 </span>
                             </div>
 

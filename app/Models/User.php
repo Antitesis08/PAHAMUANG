@@ -27,7 +27,29 @@ protected $fillable = [
     'no_telepon',
     'alamat',
     'is_available',
+    'foto_profil',
+    'deskripsi',
+    'spesialisasi',
+    'tarif',
+    'rating',
+    'jumlah_ulasan',
+    'bidang',
 ];
+
+protected $appends = [
+    'foto_profil_url',
+    'name',
+];
+
+public function getFotoProfilUrlAttribute()
+{
+    return $this->foto_profil ? asset('storage/' . $this->foto_profil) : null;
+}
+
+public function getNameAttribute()
+{
+    return $this->nama;
+}
 
     /**
      * The attributes that should be hidden for serialization.
@@ -48,6 +70,9 @@ protected $fillable = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_available' => 'boolean',
+        'tarif' => 'decimal:0',
+        'rating' => 'decimal:1',
+        'jumlah_ulasan' => 'integer',
     ];
 
     public function createBooking($layanan_id, $jadwal): Konsultasi

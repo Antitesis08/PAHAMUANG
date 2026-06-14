@@ -94,7 +94,7 @@ const showingNavigationDropdown = ref(false);
                                         </div>
 
                                         <DropdownLink
-                                            :href="route('profile.edit')"
+                                            :href="$page.props.auth.user.role == 2 ? route('konsultan.profil.edit') : route('profile.edit')"
                                             class="hover:bg-blue-50 hover:text-blue-700"
                                         >
                                             Profil Saya
@@ -197,7 +197,7 @@ const showingNavigationDropdown = ref(false);
                     <div class="space-y-1 border-t border-gray-100 pb-3 pt-2">
 
                         <ResponsiveNavLink
-                            :href="route('profile.edit')"
+                            :href="$page.props.auth.user.role == 2 ? route('konsultan.profil.edit') : route('profile.edit')"
                         >
                             Profil Saya
                         </ResponsiveNavLink>

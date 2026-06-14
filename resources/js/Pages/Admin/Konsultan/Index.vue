@@ -10,6 +10,15 @@ const props = defineProps({
     },
 });
 
+const formatPrice = (price) => {
+    if (!price && price !== 0) return '-';
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(price);
+};
+
 const search = ref('');
 
 const filteredKonsultans = computed(() => {
@@ -109,6 +118,7 @@ const deleteKonsultan = (id) => {
                                     <th class="px-6 py-4">Email</th>
                                     <th class="px-6 py-4">Spesialisasi</th>
                                     <th class="px-6 py-4">Telepon</th>
+                                    <th class="px-6 py-4">Tarif</th>
                                     <th class="px-6 py-4">Rating</th>
                                     <th class="px-6 py-4">Status</th>
                                     <th class="px-6 py-4 text-center">Aksi</th>
@@ -120,14 +130,14 @@ const deleteKonsultan = (id) => {
                             <tbody class="divide-y divide-gray-100 bg-white">
 
                                 <tr
-                                    v-for="konsultan in filteredKonsultans"
+                                    v-for="(konsultan, index) in filteredKonsultans"
                                     :key="konsultan.id"
                                     class="transition hover:bg-gray-50"
                                 >
 
                                     <!-- ID -->
                                     <td class="px-6 py-5 text-sm font-medium text-gray-700">
-                                        {{ konsultan.id }}
+                                        {{ index + 1 }}
                                     </td>
 
                                     <!-- Nama -->
@@ -174,6 +184,11 @@ const deleteKonsultan = (id) => {
                                     <!-- Telepon -->
                                     <td class="px-6 py-5 text-sm text-gray-700">
                                         {{ konsultan.no_telepon ?? '-' }}
+                                    </td>
+
+                                    <!-- Tarif -->
+                                    <td class="px-6 py-5 text-sm font-semibold text-gray-700">
+                                        {{ konsultan.tarif ? formatPrice(konsultan.tarif) : 'Belum diset' }}
                                     </td>
 
                                     <!-- Rating -->
@@ -287,7 +302,7 @@ const deleteKonsultan = (id) => {
                                 </tr>
 
                                 <tr v-if="filteredKonsultans.length === 0">
-                                    <td colspan="8" class="px-6 py-10 text-center text-gray-400">
+                                    <td colspan="9" class="px-6 py-10 text-center text-gray-400">
                                         Tidak ada konsultan yang sesuai.
                                     </td>
                                 </tr>

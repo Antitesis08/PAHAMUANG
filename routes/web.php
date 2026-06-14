@@ -12,12 +12,60 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
+/*
+|--------------------------------------------------------------------------
+| Helper Functions untuk Konsultan
+|--------------------------------------------------------------------------
+| Dipakai di route booking, checkout, dan booking-success.
+| Mengambil tarif dari kolom `tarif` di tabel users (konsultan).
+| Jika konsultan belum punya tarif, fallback ke harga layanan pertama.
+*/
+
+function getKonsultanHarga($konsultanId)
+{
+    $konsultan = \App\Models\User::find($konsultanId);
+    if ($konsultan && $konsultan->tarif) {
+        return $konsultan->tarif;
+    }
+    // Fallback: ambil harga layanan pertama
+    $layanan = \App\Models\Layanan::first();
+    return $layanan ? $layanan->harga : 500000;
+}
+
+function buildLayananForKonsultan($konsultanId)
+{
+    // Ambil layanan pertama sebagai layanan default untuk konsultan.
+    // Di masa depan bisa dikembangkan jadi relasi many-to-many konsultan <-> layanan.
+    $layanan = \App\Models\Layanan::first();
+
+    if ($layanan) {
+        // Override harga layanan dengan tarif konsultan agar konsisten
+        $harga = getKonsultanHarga($konsultanId);
+        $layanan->harga = $harga;
+    }
+
+    return $layanan;
+}
+
 
 // 1. HALAMAN UTAMA (publik)
 Route::get('/', function () {
     $layanan = \App\Models\Layanan::all();
+
+    // Ambil konsultan top dari database (yang tersedia, rating tertinggi)
+    $topKonsultans = \App\Models\User::where('role', 2)
+        ->where('is_available', true)
+        ->orderByDesc('rating')
+        ->limit(3)
+        ->get()
+        ->map(function ($item) {
+            $item->status_aktif = $item->is_available;
+            return $item;
+        });
+
     return Inertia::render('Dashboard', [
-        'layanans' => $layanan
+        'layanans' => $layanan,
+        'topKonsultans' => $topKonsultans,
     ]);
 })->name('dashboard');
 
@@ -26,7 +74,10 @@ Route::get('/dashboard', function () {
 });
 
 Route::get('/konsultan-public', function () {
-    $konsultan = \App\Models\User::where('role', 2)->get();
+    $konsultan = \App\Models\User::where('role', 2)->get()->map(function ($item) {
+        $item->status_aktif = $item->is_available;
+        return $item;
+    });
     return Inertia::render('Public/KonsultanList', [
         'initialKonsultans' => $konsultan
     ]);
@@ -35,10 +86,16 @@ Route::get('/konsultan-public', function () {
 // detail konsultan
 Route::get('/konsultan-public/{id}', function ($id) {
     $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
+    $konsultan->status_aktif = $konsultan->is_available;
     return Inertia::render('Public/KonsultanDetail', [
         'konsultan' => $konsultan
     ]);
 })->name('public.konsultan.detail');
+
+// Halaman publik Tentang Kami
+Route::get('/tentang-kami', function () {
+    return Inertia::render('Public/AboutUs');
+})->name('public.about');
 
 // layanan keuangan
 Route::get('/layanan/{slug}', function ($slug) {
@@ -50,19 +107,38 @@ Route::get('/layanan/{slug}', function ($slug) {
 // booking jadwal
 Route::get('/booking/{id}', function ($id) {
     $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
-    $layanan = \App\Models\Layanan::where('harga', 750000)->first() ?? \App\Models\Layanan::first();
+    
+    // Server-side check
+    if (!$konsultan->is_available) {
+        return redirect()->route('public.konsultan')->with('error', 'Konsultan sedang tidak menerima booking saat ini.');
+    }
+
+    $layanan = buildLayananForKonsultan($id);
+
+    // Get booked slots
+    $bookedSlots = \App\Models\Konsultasi::where('konsultan_id', $id)
+        ->whereIn('status', ['pending', 'aktif'])
+        ->pluck('jadwal')
+        ->toArray();
 
     return Inertia::render('Public/BookingSchedule', [
         'id' => $id,
         'konsultan' => $konsultan,
         'layanan' => $layanan,
+        'bookedSlots' => $bookedSlots,
     ]);
 })->name('public.booking');
 
 // checkout pembayaran
 Route::get('/checkout/{id}', function ($id) {
     $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
-    $layanan = \App\Models\Layanan::where('harga', 750000)->first() ?? \App\Models\Layanan::first();
+    
+    // Server-side check
+    if (!$konsultan->is_available) {
+        return redirect()->route('public.konsultan')->with('error', 'Konsultan sedang tidak menerima booking saat ini.');
+    }
+
+    $layanan = buildLayananForKonsultan($id);
 
     return Inertia::render('Public/Checkout', [
         'id' => $id,
@@ -74,6 +150,19 @@ Route::get('/checkout/{id}', function ($id) {
     ]);
 })->name('public.checkout');
 
+// Halaman konfirmasi booking sukses
+Route::get('/booking-success/{id}', function ($id) {
+    $konsultasi = \App\Models\Konsultasi::with(['konsultan', 'layanan', 'pembayaran'])->findOrFail($id);
+    
+    if ($konsultasi->layanan) {
+        $konsultasi->layanan->harga = getKonsultanHarga($konsultasi->konsultan_id);
+    }
+    
+    return Inertia::render('Public/BookingSuccess', [
+        'konsultasi' => $konsultasi
+    ]);
+})->name('public.booking.success');
+
 // proses booking & pembayaran palsu
 Route::post('/checkout/{id}', function (\Illuminate\Http\Request $request, $id) {
     $rules = [
@@ -81,46 +170,64 @@ Route::post('/checkout/{id}', function (\Illuminate\Http\Request $request, $id) 
         'time' => 'required',
         'topic' => 'nullable|string',
         'payment_method' => 'required|string',
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+        'phone' => 'required|string|max:20',
     ];
-
-    if (!auth()->check()) {
-        $rules['name'] = 'required|string|max:255';
-        $rules['email'] = 'required|email|max:255';
-        $rules['phone'] = 'required|string|max:20';
-    }
 
     $request->validate($rules);
 
-    $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
-    $layanan = \App\Models\Layanan::where('harga', 750000)->first() ?? \App\Models\Layanan::first();
+    // Tolak jika tanggal yang dipilih sudah lewat
+    $today = date('Y-m-d');
+    if ($request->input('date') < $today) {
+        return back()->withErrors(['date' => 'Tanggal yang dipilih sudah lewat, silakan pilih tanggal lain.']);
+    }
 
-    if (auth()->check()) {
-        $client = auth()->user();
-    } else {
-        // Cari atau buat user berdasarkan email
-        $client = \App\Models\User::where('email', $request->input('email'))->first();
-        if (!$client) {
-            $client = \App\Models\User::create([
-                'nama' => $request->input('name'),
-                'email' => $request->input('email'),
-                'no_telepon' => $request->input('phone'),
-                'password' => \Illuminate\Support\Facades\Hash::make('password_pahamuang_guest_123'),
-                'role' => 3, // Pelanggan
-            ]);
-        } else {
-            if ($request->input('phone')) {
-                $client->update(['no_telepon' => $request->input('phone')]);
-            }
-        }
+    $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
+    
+    // Server-side check
+    if (!$konsultan->is_available) {
+        return redirect()->route('public.konsultan')->with('error', 'Konsultan sedang tidak menerima booking saat ini.');
     }
 
     $jadwalTime = $request->input('date') . ' ' . $request->input('time') . ':00';
+
+    // Cek bentrok jadwal (pending/aktif)
+    $bentrok = \App\Models\Konsultasi::where('konsultan_id', $id)
+        ->where('jadwal', $jadwalTime)
+        ->whereIn('status', ['pending', 'aktif'])
+        ->exists();
+
+    if ($bentrok) {
+        return back()->withErrors(['date' => 'Jadwal ini sudah dibooking, silakan pilih jadwal lain.']);
+    }
+
+    $hargaKonsultan = getKonsultanHarga($id);
+    $layanan = buildLayananForKonsultan($id);
+
+    // Selalu ambil data klien dari form input (BUKAN dari auth user)
+    // Cari atau buat user berdasarkan email
+    $client = \App\Models\User::where('email', $request->input('email'))->first();
+    if (!$client) {
+        $client = \App\Models\User::create([
+            'nama' => $request->input('name'),
+            'email' => $request->input('email'),
+            'no_telepon' => $request->input('phone'),
+            'password' => \Illuminate\Support\Facades\Hash::make('password_pahamuang_guest_123'),
+            'role' => 3, // Pelanggan
+        ]);
+    } else {
+        $client->update([
+            'nama' => $request->input('name'),
+            'no_telepon' => $request->input('phone'),
+        ]);
+    }
 
     // Buat konsultasi
     $konsultasi = \App\Models\Konsultasi::create([
         'user_id' => $client->id,
         'konsultan_id' => $konsultan->id,
-        'layanan_id' => $layanan->id,
+        'layanan_id' => $layanan ? $layanan->id : 1,
         'status' => 'pending',
         'jadwal' => $jadwalTime,
         'catatan' => $request->input('topic'),
@@ -129,14 +236,14 @@ Route::post('/checkout/{id}', function (\Illuminate\Http\Request $request, $id) 
     // Buat pembayaran palsu
     \App\Models\Pembayaran::create([
         'konsultasi_id' => $konsultasi->id,
-        'jumlah' => $layanan->harga,
+        'jumlah' => $hargaKonsultan,
         'status_pembayaran' => 'lunas',
         'metode_pembayaran' => $request->input('payment_method'),
         'kode_transaksi' => 'TX-' . strtoupper(uniqid()),
         'tanggal_bayar' => now(),
     ]);
 
-    return redirect()->route('dashboard')->with('success', 'Booking konsultasi berhasil. Konsultan akan segera menghubungi Anda melalui WhatsApp atau Email untuk konfirmasi jadwal.');
+    return redirect()->route('public.booking.success', $konsultasi->id)->with('success', 'Booking konsultasi berhasil.');
 })->name('public.checkout.store');
 
 // 2. AREA ADMIN (Role 1)
@@ -181,6 +288,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 
         Route::get('/pelanggan', [AdminController::class, 'indexPelanggan'])
             ->name('pelanggan.index');
+
+        Route::get('/konsultasi', [AdminController::class, 'indexKonsultasiBooking'])
+            ->name('konsultasi.index');
+
+        Route::delete('/konsultasi/{id}', [AdminController::class, 'destroyKonsultasiBooking'])
+            ->name('konsultasi.destroy');
     });
 
 // 3. AREA KONSULTAN (Role 2)
@@ -193,6 +306,8 @@ Route::middleware(['auth', 'verified', 'role:konsultan'])->prefix('konsultan')->
     Route::patch('/status',          [KonsultanController::class, 'kelolaStatus'])->name('status');
     Route::patch('/konsultasi/{id}/status', [KonsultanController::class, 'updateKonsultasiStatus'])->name('konsultasi.status');
     Route::get('/jadwal',            [KonsultanController::class, 'getJadwal'])->name('jadwal');
+    Route::get('/profil',            [KonsultanController::class, 'editProfil'])->name('profil.edit');
+    Route::post('/profil',           [KonsultanController::class, 'updateProfil'])->name('profil.post');
     Route::patch('/profil',          [KonsultanController::class, 'updateProfil'])->name('profil');
     Route::get('/riwayat',           [KonsultanController::class, 'getRiwayatKonsultasi'])->name('riwayat');
 });

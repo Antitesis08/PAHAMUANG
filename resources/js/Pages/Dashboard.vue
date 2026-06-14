@@ -2,26 +2,17 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import PublicNavbar from '@/Components/PublicNavbar.vue';
 
-// Accept layanans passed from web.php
+// Accept data passed from web.php
 const props = defineProps({
     layanans: {
         type: Array,
         default: () => []
+    },
+    topKonsultans: {
+        type: Array,
+        default: () => []
     }
 });
-
-// Mockup data for top consultants as requested
-const topKonsultan = [
-    {
-        id: 2,
-        nama: 'Dr. Budi Santoso, CFP',
-        bidang: 'Investasi & Pensiun',
-        harga: 'Rp 750.000/jam',
-        rating: '4.9',
-        reviews: 120,
-        avatar: 'https://ui-avatars.com/api/?name=Budi+Santoso&background=E0E7FF&color=4F46E5'
-    }
-];
 
 // Helper to determine icon based on category or name
 const getIcon = (nama_layanan) => {
@@ -40,10 +31,14 @@ const formatPrice = (price) => {
     }).format(price);
 };
 
+// Helper to get avatar URL
+const getAvatar = (konsultan) => {
+    if (konsultan.foto_profil_url) return konsultan.foto_profil_url;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(konsultan.nama)}&background=E0E7FF&color=4F46E5`;
+};
+
 // Handle service selection (state capture / navigation)
 const selectService = (id) => {
-    // In a real application, you might use Pinia here to set state. 
-    // For now, we'll navigate to the konsultan list and pass the layanan_id as a query param.
     router.get(route('public.konsultan'), { layanan_id: id });
 };
 </script>
@@ -177,7 +172,7 @@ const selectService = (id) => {
 
                 <div class="grid md:grid-cols-3 gap-8">
                     <Link
-                        v-for="konsultan in topKonsultan"
+                        v-for="konsultan in topKonsultans"
                         :key="konsultan.id"
                         :href="route('public.konsultan.detail', konsultan.id)"
                         class="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group"
@@ -185,7 +180,7 @@ const selectService = (id) => {
                         <div class="p-8">
                             <div class="flex items-start justify-between mb-6">
                                 <img 
-                                    :src="konsultan.avatar" 
+                                    :src="getAvatar(konsultan)" 
                                     :alt="konsultan.nama" 
                                     class="w-20 h-20 rounded-2xl object-cover ring-4 ring-blue-50 group-hover:ring-blue-100 transition-all"
                                 />
@@ -199,22 +194,22 @@ const selectService = (id) => {
                                 {{ konsultan.nama }}
                             </h3>
                             <p class="text-sm font-medium text-blue-600 mb-4">
-                                {{ konsultan.bidang }}
+                                {{ konsultan.bidang || 'Konsultan Keuangan' }}
                             </p>
 
                             <div class="flex items-center gap-2 mb-6">
                                 <div class="flex text-yellow-400 text-sm">
                                     ★ ★ ★ ★ ★
                                 </div>
-                                <span class="font-bold text-gray-700">{{ konsultan.rating }}</span>
-                                <span class="text-gray-400 text-sm">({{ konsultan.reviews }} ulasan)</span>
+                                <span class="font-bold text-gray-700">{{ konsultan.rating || '0.0' }}</span>
+                                <span class="text-gray-400 text-sm">({{ konsultan.jumlah_ulasan || 0 }} ulasan)</span>
                             </div>
 
                             <div class="pt-6 border-t border-gray-100 flex items-center justify-between">
                                 <div>
                                     <p class="text-xs text-gray-400 mb-1">Tarif per jam</p>
                                     <p class="font-bold text-gray-900">
-                                        {{ konsultan.harga }}
+                                        {{ formatPrice(konsultan.tarif || 0) }}
                                     </p>
                                 </div>
                                 <div class="bg-gray-50 text-gray-600 px-4 py-2 rounded-xl text-sm font-semibold group-hover:bg-[#0B56D5] group-hover:text-white transition-colors">

@@ -10,26 +10,26 @@ const props = defineProps({
     }
 });
 
-// Extend database records with mock UI data
+// Extend database records with display data using DB fields
 const getExtendedData = (user) => {
-    // Generate realistic mock data to match the UI requirements
-    // In a real scenario, this would come directly from the DB relationships
-    const isAvailable = user.is_available !== undefined ? user.is_available : (user.id % 2 !== 0);
-    const harga = user.id % 3 === 0 ? 850000 : (user.id % 2 === 0 ? 600000 : 750000);
-    const rating = user.id % 3 === 0 ? 4.9 : (user.id % 2 === 0 ? 4.6 : 4.8);
-    const reviews = 50 + (user.id * 15);
+    // Use the status_aktif from backend if available
+    const isAvailable = user.status_aktif !== undefined ? !!user.status_aktif : (user.is_available !== undefined ? !!user.is_available : false);
+    const harga = user.tarif || 500000;
+    const rating = user.rating ? parseFloat(user.rating) : 0;
+    const reviews = user.jumlah_ulasan || 0;
     const university = "MBA - Universitas Indonesia";
-    const specialties = user.id % 2 === 0 
-        ? ["Manajemen Utang", "Asuransi"] 
-        : ["Perencanaan Pensiun", "Investasi"];
+    const specialties = user.spesialisasi 
+        ? user.spesialisasi.split(',').map(s => s.trim())
+        : ['Konsultasi Keuangan'];
     const roleTitle = "Certified Financial Planner";
     
-    // Fallback name if it's the default seeder
     const displayName = user.nama.includes(',') ? user.nama : `${user.nama}, CFP`;
 
     const avatarColors = ['E0E7FF,4F46E5', 'FCE7F3,DB2777', 'D1FAE5,059669'];
     const colorPair = avatarColors[user.id % avatarColors.length].split(',');
-    const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nama)}&background=${colorPair[0]}&color=${colorPair[1]}`;
+    const avatar = user.foto_profil_url 
+        ? user.foto_profil_url 
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nama)}&background=${colorPair[0]}&color=${colorPair[1]}`;
 
     return {
         ...user,
@@ -228,7 +228,7 @@ const formatPrice = (price) => {
                                 </span>
                                 <span v-else class="inline-flex items-center gap-1.5 bg-red-50 text-red-700 border border-red-200 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
                                     <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                                    Sibuk
+                                    Sedang Tidak Tersedia
                                 </span>
                             </div>
 
@@ -275,11 +275,19 @@ const formatPrice = (price) => {
                                     </p>
                                 </div>
                                 <Link
+                                    v-if="item.isAvailable"
                                     :href="route('public.konsultan.detail', item.id)"
                                     class="btn-primary px-4 py-2 text-sm rounded-lg"
                                 >
                                     Lihat Profil
                                 </Link>
+                                <button
+                                    v-else
+                                    disabled
+                                    class="bg-gray-200 text-gray-400 cursor-not-allowed px-4 py-2 text-sm rounded-lg font-semibold"
+                                >
+                                    Tidak Tersedia
+                                </button>
                             </div>
                                 </div>
                             </template>

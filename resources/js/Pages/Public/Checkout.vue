@@ -15,11 +15,13 @@ const props = defineProps({
 
 const paymentMethod = ref('');
 const paymentDetail = ref(null);
+const showPaymentModal = ref(false);
+const paymentLoading = ref(false);
 
 const form = useForm({
-    name: props.auth?.user?.nama || '',
-    email: props.auth?.user?.email || '',
-    phone: props.auth?.user?.no_telepon || '',
+    name: props.auth?.user?.role === 3 ? (props.auth?.user?.nama || '') : '',
+    email: props.auth?.user?.role === 3 ? (props.auth?.user?.email || '') : '',
+    phone: props.auth?.user?.role === 3 ? (props.auth?.user?.no_telepon || '') : '',
     topic: props.topic || '',
     date: props.date || '',
     time: props.time || '',
@@ -44,7 +46,16 @@ const submitCheckout = () => {
         return;
     }
 
-    form.post(route('public.checkout.store', props.id));
+    showPaymentModal.value = true;
+};
+
+const confirmPayment = () => {
+    paymentLoading.value = true;
+    setTimeout(() => {
+        paymentLoading.value = false;
+        showPaymentModal.value = false;
+        form.post(route('public.checkout.store', props.id));
+    }, 700);
 };
 
 const formatPrice = (price) => {
@@ -372,7 +383,7 @@ const formatPrice = (price) => {
                                 </span>
 
                                 <span>
-                                    {{ formatPrice(layanan ? layanan.harga : 750000) }}
+                                    {{ formatPrice(konsultan ? (konsultan.tarif || (layanan ? layanan.harga : 0)) : 0) }}
                                 </span>
                             </div>
 
@@ -404,7 +415,7 @@ const formatPrice = (price) => {
                                 <span>Total</span>
 
                                 <span class="text-indigo-700">
-                                    {{ formatPrice((layanan ? parseFloat(layanan.harga) : 750000) + 5000) }}
+                                    {{ formatPrice((konsultan ? (parseFloat(konsultan.tarif) || (layanan ? parseFloat(layanan.harga) : 0)) : 0) + 5000) }}
                                 </span>
 
                             </div>
@@ -426,6 +437,43 @@ const formatPrice = (price) => {
 
             </div>
 
+        </div>
+
+        <div v-if="showPaymentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6">
+            <div class="w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl">
+                <h2 class="text-2xl font-bold text-gray-900">Konfirmasi Pembayaran</h2>
+                <p class="mt-3 text-gray-600">Pembayaran akan diproses sebagai simulasi. Pastikan data sudah benar sebelum melanjutkan.</p>
+
+                <div class="mt-6 rounded-3xl border border-gray-200 bg-gray-50 p-6">
+                    <div class="flex justify-between text-sm text-gray-500">
+                        <span>Metode</span>
+                        <span>{{ paymentDetail || paymentMethod || '-' }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-500 mt-2">
+                        <span>Total</span>
+                        <span>{{ formatPrice((konsultan ? (parseFloat(konsultan.tarif) || (layanan ? parseFloat(layanan.harga) : 0)) : 0) + 5000) }}</span>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-end">
+                    <button
+                        type="button"
+                        @click="showPaymentModal = false"
+                        class="rounded-xl border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        type="button"
+                        @click="confirmPayment"
+                        :disabled="paymentLoading"
+                        class="rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white hover:bg-green-700 transition disabled:opacity-60"
+                    >
+                        <span v-if="paymentLoading">Memproses...</span>
+                        <span v-else>Konfirmasi dan Bayar</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
     </div>

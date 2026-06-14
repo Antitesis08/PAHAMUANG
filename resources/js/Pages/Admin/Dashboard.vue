@@ -99,7 +99,7 @@ const namaAdmin = computed(() => page.props.auth.user?.nama ?? 'Admin');
                 <!-- Menu Cepat -->
                 <div class="mt-8">
                     <h3 class="mb-4 text-lg font-semibold text-gray-700">Menu Cepat</h3>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <a :href="route('admin.users.kelola')"
                             class="flex items-center rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-indigo-400 hover:shadow">
                             <div class="rounded-lg bg-indigo-100 p-2">
@@ -111,6 +111,20 @@ const namaAdmin = computed(() => page.props.auth.user?.nama ?? 'Admin');
                             <div class="ml-3">
                                 <p class="font-medium text-gray-900">Kelola User</p>
                                 <p class="text-sm text-gray-500">Tambah, edit, dan hapus pengguna</p>
+                            </div>
+                        </a>
+
+                        <a :href="route('admin.konsultasi.index')"
+                            class="flex items-center rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-indigo-400 hover:shadow">
+                            <div class="rounded-lg bg-green-100 p-2">
+                                <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="font-medium text-gray-900">Kelola Konsultasi</p>
+                                <p class="text-sm text-gray-500">Lihat & hapus riwayat pemesanan</p>
                             </div>
                         </a>
 

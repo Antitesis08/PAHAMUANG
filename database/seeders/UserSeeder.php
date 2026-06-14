@@ -19,14 +19,52 @@ class UserSeeder extends Seeder
             'no_telepon' => '081234567890',
         ]);
 
-        // Data Konsultan
+        // Data Konsultan 1 — Dr. Budi Santoso, CFP
         User::create([
-            'nama' => 'Budi Konsultan',
+            'nama' => 'Dr. Budi Santoso, CFP',
             'email' => 'konsultan@pahamuang.com',
             'password' => Hash::make('password'),
-            'role' => 2, // 2 untuk Konsultan
+            'role' => 2,
             'no_telepon' => '089876543210',
             'is_available' => true,
+            'spesialisasi' => 'Perencanaan Pensiun, Investasi',
+            'bidang' => 'Investasi & Pensiun',
+            'tarif' => 750000,
+            'rating' => 4.9,
+            'jumlah_ulasan' => 120,
+            'deskripsi' => 'Certified Financial Planner berpengalaman 15 tahun dalam perencanaan investasi dan pensiun.',
+        ]);
+
+        // Data Konsultan 2 — Sari Dewi, CFP
+        User::create([
+            'nama' => 'Sari Dewi, CFP',
+            'email' => 'sari@pahamuang.com',
+            'password' => Hash::make('password'),
+            'role' => 2,
+            'no_telepon' => '081298765432',
+            'is_available' => true,
+            'spesialisasi' => 'Manajemen Utang, Asuransi',
+            'bidang' => 'Manajemen Keuangan',
+            'tarif' => 600000,
+            'rating' => 4.7,
+            'jumlah_ulasan' => 85,
+            'deskripsi' => 'Spesialis manajemen utang dan perencanaan asuransi keluarga.',
+        ]);
+
+        // Data Konsultan 3 — Andi Pratama, CFP
+        User::create([
+            'nama' => 'Andi Pratama, CFP',
+            'email' => 'andi@pahamuang.com',
+            'password' => Hash::make('password'),
+            'role' => 2,
+            'no_telepon' => '085612345678',
+            'is_available' => false,
+            'spesialisasi' => 'Perencanaan Pensiun, Investasi, Pajak',
+            'bidang' => 'Perencanaan Pajak & Pensiun',
+            'tarif' => 850000,
+            'rating' => 4.8,
+            'jumlah_ulasan' => 95,
+            'deskripsi' => 'Ahli perencanaan pajak dan strategi pensiun dini.',
         ]);
 
         // Data Pelanggan/Client (Role 3)

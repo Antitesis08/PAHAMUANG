@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->dateTime('jadwal');
             $table->text('catatan')->nullable();
+            $table->string('alasan_tolak')->nullable();
             $table->timestamps();
         });
     }

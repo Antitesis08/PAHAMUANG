@@ -65,21 +65,49 @@ class KonsultanController extends Controller
     }
 
     /**
+     * Tampilkan halaman edit profil konsultan.
+     * GET /konsultan/profil
+     */
+    public function editProfil(): \Inertia\Response
+    {
+        return Inertia::render('Konsultan/Profil', [
+            'konsultan' => Auth::user(),
+        ]);
+    }
+
+    /**
      * Update profil konsultan (nama, telepon, dll).
      * PATCH /konsultan/profil
      */
     public function updateProfil(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
-            'nama'       => 'required|string|max:255',
-            'no_telepon' => 'nullable|string|max:20',
+            'nama'         => 'required|string|max:255',
+            'no_telepon'   => 'nullable|string|max:20',
+            'email'        => 'required|email|max:255|unique:users,email,' . Auth::id(),
+            'deskripsi'    => 'nullable|string',
+            'spesialisasi' => 'nullable|string|max:255',
+            'tarif'        => 'nullable|integer|min:0',
+            'foto_profil'  => 'nullable|image|max:2048', // max 2MB
         ]);
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
+
+        if ($request->hasFile('foto_profil')) {
+            // Hapus foto lama jika ada
+            if ($user->foto_profil) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->foto_profil);
+            }
+            // Simpan foto baru
+            $path = $request->file('foto_profil')->store('foto_profil', 'public');
+            $validated['foto_profil'] = $path;
+        }
+
         $user->update($validated);
 
-        return back()->with('success', 'Profil berhasil diperbarui.');
+        return back()->with('success', 'Profil berhasil diperbarui.')
+            ->withHeaders(['Cache-Control' => 'no-cache, no-store, must-revalidate']);
     }
 
     /**
@@ -100,9 +128,11 @@ class KonsultanController extends Controller
                 return [
                     'id' => $item->id,
                     'nama_user' => $item->user ? $item->user->nama : '-',
+                    'layanan' => $item->layanan ? $item->layanan->nama_layanan : '-',
                     'topik' => $item->catatan ?? '-',
                     'tanggal' => $item->jadwal ? \Carbon\Carbon::parse($item->jadwal)->translatedFormat('d F Y') : '-',
                     'jam' => $item->jadwal ? \Carbon\Carbon::parse($item->jadwal)->format('H:i') : '-',
+                    'catatan' => $item->catatan ?? '-',
                     'pembayaran' => $item->pembayaran ? 'Rp ' . number_format($item->pembayaran->jumlah, 0, ',', '.') . ' (' . $item->pembayaran->status_pembayaran . ')' : 'Belum Bayar',
                 ];
             });
@@ -152,7 +182,7 @@ class KonsultanController extends Controller
                     'status' => $item->status,
                     'tanggal' => $item->jadwal ? \Carbon\Carbon::parse($item->jadwal)->translatedFormat('d F Y') : '-',
                     'jam' => $item->jadwal ? \Carbon\Carbon::parse($item->jadwal)->format('H:i') : '-',
-                    'layanan' => $item->layanan ? $item->layanan->nama : '-',
+                    'layanan' => $item->layanan ? $item->layanan->nama_layanan : '-',
                 ];
             });
 
@@ -162,7 +192,10 @@ class KonsultanController extends Controller
                 'nama',
                 'email',
                 'is_available',
-                'no_telepon'
+                'no_telepon',
+                'foto_profil_url',
+                'deskripsi',
+                'spesialisasi'
             ),
 
             'stats' => [
@@ -183,7 +216,8 @@ class KonsultanController extends Controller
     public function updateKonsultasiStatus(Request $request, $id): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
-            'status' => 'required|in:aktif,selesai,tolak',
+            'status' => 'required|in:aktif,selesai,ditolak',
+            'alasan_tolak' => 'nullable|string|max:255',
         ]);
 
         /** @var \App\Models\User $user */
@@ -192,10 +226,13 @@ class KonsultanController extends Controller
         $konsultasi = \App\Models\Konsultasi::where('konsultan_id', $user->id)
             ->findOrFail($id);
 
-        if ($request->status === 'tolak') {
-            $konsultasi->delete();
+        if ($request->status === 'ditolak') {
+            $konsultasi->update([
+                'status' => 'ditolak',
+                'alasan_tolak' => $request->input('alasan_tolak'),
+            ]);
 
-            return back()->with('success', 'Permintaan konsultasi berhasil ditolak dan dihapus.');
+            return back()->with('success', 'Permintaan konsultasi berhasil ditolak.');
         }
 
         $konsultasi->update(['status' => $request->status]);

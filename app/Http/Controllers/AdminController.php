@@ -167,7 +167,8 @@ class AdminController extends Controller implements ApiInterface
                 'no_telepon',
                 'created_at',
                 'updated_at',
-                'is_available'
+                'is_available',
+                'tarif'
             )
             ->where('role', 2)
             ->orderBy('id', 'asc')
@@ -183,6 +184,7 @@ class AdminController extends Controller implements ApiInterface
                     'is_available' => $user->is_available,
                     'spesialisasi' => $user->spesialisasi ?? null,
                     'rating' => $user->rating ?? null,
+                    'tarif' => $user->tarif ?? 0,
                 ];
             });
 
@@ -213,6 +215,7 @@ class AdminController extends Controller implements ApiInterface
             'password'   => 'required|string|min:8',
             'nama'       => 'nullable|string|max:255',
             'no_telepon' => 'nullable|string|max:20',
+            'tarif'      => 'nullable|integer|min:0',
         ]);
 
         User::create([
@@ -221,6 +224,7 @@ class AdminController extends Controller implements ApiInterface
             'password'     => Hash::make($validated['password']),
             'role'         => 2, // konsultan
             'no_telepon'   => $validated['no_telepon'] ?? null,
+            'tarif'        => $validated['tarif'] ?? 0,
             'is_available' => false,
         ]);
 
@@ -284,5 +288,49 @@ class AdminController extends Controller implements ApiInterface
         return Inertia::render('Admin/Dashboard', [
             'stats' => $stats,
         ]);
+    }
+
+    /**
+     * =========================================================
+     * DAFTAR KONSULTASI / BOOKING
+     * =========================================================
+     */
+    public function indexKonsultasiBooking(): \Inertia\Response
+    {
+        $konsultasis = \App\Models\Konsultasi::with(['user', 'konsultan', 'layanan', 'pembayaran'])
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'user_nama' => $item->user->nama ?? 'Guest/Unknown',
+                    'user_email' => $item->user->email ?? '-',
+                    'konsultan_nama' => $item->konsultan->nama ?? 'Unknown',
+                    'layanan_nama' => $item->layanan->nama_layanan ?? 'Konsultasi Keuangan',
+                    'status' => $item->status,
+                    'jadwal' => $item->jadwal ? $item->jadwal->format('Y-m-d H:i') : '-',
+                    'jumlah_bayar' => $item->pembayaran->jumlah ?? 0,
+                    'status_pembayaran' => $item->pembayaran->status_pembayaran ?? '-',
+                ];
+            });
+
+        return Inertia::render('Admin/Konsultasi/Index', [
+            'konsultasis' => $konsultasis,
+        ]);
+    }
+
+    /**
+     * =========================================================
+     * HAPUS KONSULTASI / BOOKING
+     * =========================================================
+     */
+    public function destroyKonsultasiBooking($id): \Illuminate\Http\RedirectResponse
+    {
+        $konsultasi = \App\Models\Konsultasi::findOrFail($id);
+        $konsultasi->delete();
+
+        return redirect()
+            ->back()
+            ->with('success', 'Jadwal konsultasi berhasil dihapus.');
     }
 }

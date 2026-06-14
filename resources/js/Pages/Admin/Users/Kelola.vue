@@ -93,34 +93,33 @@ import { Head, Link } from '@inertiajs/vue3';
                         </div>
                     </Link>
 
-                    <!-- Manajemen User -->
+                    <!-- Kelola Konsultasi -->
                     <Link
-                        :href="route('admin.users.index')"
+                        :href="route('admin.konsultasi.index')"
                         class="group rounded-3xl bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
                     >
                         <div
-                            class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-purple-100 transition group-hover:bg-purple-200"
+                            class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-yellow-100 transition group-hover:bg-yellow-200"
                         >
-                            <img
-                                src="/images/users.png"
-                                alt="Users"
-                                class="h-10 w-10 object-contain"
-                            />
+                            <svg class="h-10 w-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
                         </div>
 
                         <h2 class="text-2xl font-bold text-gray-900">
-                            Manajemen User
+                            Manajemen Konsultasi
                         </h2>
 
                         <p class="mt-3 text-gray-500">
-                            Tambah user baru, edit data akun,
-                            dan hapus pengguna dari sistem.
+                            Kelola seluruh jadwal booking,
+                            dan hapus riwayat pemesanan konsultasi.
                         </p>
 
                         <div
-                            class="mt-6 inline-flex items-center font-semibold text-purple-600"
+                            class="mt-6 inline-flex items-center font-semibold text-yellow-600"
                         >
-                            Kelola User →
+                            Kelola Konsultasi →
                         </div>
                     </Link>
 

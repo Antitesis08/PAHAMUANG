@@ -167,7 +167,7 @@ const roleLabel = (role) => {
                                     <th class="px-6 py-4 text-left">Nama</th>
                                     <th class="px-6 py-4 text-left">Email</th>
                                     <th class="px-6 py-4 text-left">Role</th>
-                                    <th class="px-6 py-4 text-left">Available</th>
+                                    <th class="px-6 py-4 text-left">Status / Info</th>
                                     <th class="px-6 py-4 text-left">Telepon</th>
                                     <th class="px-6 py-4 text-left">Created</th>
                                     <th class="px-6 py-4 text-left">Updated</th>
@@ -207,23 +207,32 @@ const roleLabel = (role) => {
                                         </span>
                                     </td>
 
-                                    <!-- Status -->
+                                    <!-- Status / Info -->
                                     <td class="px-6 py-4">
-
-                                        <span
-                                            v-if="user.is_available"
-                                            class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700"
-                                        >
-                                            Aktif
-                                        </span>
-
-                                        <span
-                                            v-else
-                                            class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700"
-                                        >
-                                            Offline
-                                        </span>
-
+                                        <template v-if="user.role == 2">
+                                            <span
+                                                v-if="user.is_available"
+                                                class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700"
+                                            >
+                                                Aktif
+                                            </span>
+                                            <span
+                                                v-else
+                                                class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700"
+                                            >
+                                                Nonaktif
+                                            </span>
+                                        </template>
+                                        <template v-else-if="user.role == 3">
+                                            <span class="text-xs text-gray-500 font-semibold">
+                                                Daftar: {{ user.created_at ? new Date(user.created_at).toLocaleDateString('id-ID') : '-' }}
+                                            </span>
+                                        </template>
+                                        <template v-else>
+                                            <span class="text-xs text-gray-400 font-semibold">
+                                                Akses Utama
+                                            </span>
+                                        </template>
                                     </td>
 
                                     <!-- Telepon -->

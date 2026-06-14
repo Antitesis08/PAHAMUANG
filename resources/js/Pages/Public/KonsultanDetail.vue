@@ -11,20 +11,22 @@ const props = defineProps({
 });
 
 const getExtendedData = (user) => {
-    const isAvailable = user.is_available !== undefined ? user.is_available : (user.id % 2 !== 0);
-    const harga = user.id % 3 === 0 ? 850000 : (user.id % 2 === 0 ? 600000 : 750000);
-    const rating = user.id % 3 === 0 ? 4.9 : (user.id % 2 === 0 ? 4.6 : 4.8);
-    const reviews = 50 + (user.id * 15);
+    const isAvailable = user.status_aktif !== undefined ? !!user.status_aktif : (user.is_available !== undefined ? !!user.is_available : false);
+    const harga = user.tarif || 500000;
+    const rating = user.rating ? parseFloat(user.rating) : 0;
+    const reviews = user.jumlah_ulasan || 0;
     const university = "MBA - Universitas Indonesia";
-    const specialties = user.id % 2 === 0 
-        ? ["Manajemen Utang", "Asuransi"] 
-        : ["Perencanaan Pensiun", "Investasi"];
+    const specialties = user.spesialisasi 
+        ? user.spesialisasi.split(',').map(s => s.trim())
+        : ['Konsultasi Keuangan'];
     const roleTitle = "Certified Financial Planner";
     const displayName = user.nama.includes(',') ? user.nama : `${user.nama}, CFP`;
 
     const avatarColors = ['E0E7FF,4F46E5', 'FCE7F3,DB2777', 'D1FAE5,059669'];
     const colorPair = avatarColors[user.id % avatarColors.length].split(',');
-    const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nama)}&background=${colorPair[0]}&color=${colorPair[1]}`;
+    const avatar = user.foto_profil_url 
+        ? user.foto_profil_url 
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nama)}&background=${colorPair[0]}&color=${colorPair[1]}`;
 
     return {
         ...user,
@@ -99,7 +101,7 @@ const proceedToBooking = () => {
                             </span>
                             <span v-else class="inline-flex items-center gap-1.5 bg-red-50 text-red-700 border border-red-200 text-sm font-bold px-4 py-1.5 rounded-full shadow-sm">
                                 <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-                                Sibuk
+                                Sedang Tidak Tersedia
                             </span>
                         </div>
 
@@ -239,9 +241,15 @@ const proceedToBooking = () => {
 
                         <button 
                             @click="proceedToBooking"
-                            class="w-full bg-[#00B16A] hover:bg-[#009E5F] text-white py-4 rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 mb-8"
+                            :disabled="!profile.isAvailable"
+                            :class="[
+                                'w-full py-4 rounded-xl font-bold text-lg shadow-md transition-all transform mb-8',
+                                profile.isAvailable 
+                                    ? 'bg-[#00B16A] hover:bg-[#009E5F] text-white hover:shadow-lg hover:-translate-y-0.5' 
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            ]"
                         >
-                            Pilih Jadwal
+                            {{ profile.isAvailable ? 'Pilih Jadwal' : 'Sedang Tidak Tersedia' }}
                         </button>
 
                         <div>

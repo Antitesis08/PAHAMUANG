@@ -31,12 +31,12 @@ import BrandLogo from '@/Components/BrandLogo.vue';
                     Konsultan
                 </Link>
 
-                <a
-                    href="#"
+                <Link
+                    :href="route('public.about')"
                     class="hover:text-brand-focus transition-colors duration-300"
                 >
-                    About us
-                </a>
+                    Tentang Kami
+                </Link>
 
                 <Link
                     :href="route('login')"

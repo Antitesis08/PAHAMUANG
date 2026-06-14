@@ -13,23 +13,23 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             if (!Schema::hasColumn('users', 'alamat')) {
-                $table->string('alamat')->nullable()->after('no_telepon');
+                $table->string('alamat')->nullable();
             }
 
             if (!Schema::hasColumn('users', 'is_available')) {
-                $table->boolean('is_available')->default(false)->after('role');
+                $table->boolean('is_available')->default(false);
             }
 
             if (!Schema::hasColumn('users', 'foto_profil')) {
-                $table->string('foto_profil')->nullable()->after('alamat');
+                $table->string('foto_profil')->nullable();
             }
 
             if (!Schema::hasColumn('users', 'deskripsi')) {
-                $table->text('deskripsi')->nullable()->after('foto_profil');
+                $table->text('deskripsi')->nullable();
             }
 
             if (!Schema::hasColumn('users', 'spesialisasi')) {
-                $table->string('spesialisasi')->nullable()->after('deskripsi');
+                $table->string('spesialisasi')->nullable();
             }
         });
     }
