@@ -69,9 +69,7 @@ Route::get('/', function () {
     ]);
 })->name('dashboard');
 
-Route::get('/dashboard', function () {
-    return redirect()->route('dashboard');
-});
+
 
 Route::get('/konsultan-public', function () {
     $konsultan = \App\Models\User::where('role', 2)->get()->map(function ($item) {
@@ -83,12 +81,32 @@ Route::get('/konsultan-public', function () {
     ]);
 })->name('public.konsultan');
 
-// detail konsultan
 Route::get('/konsultan-public/{id}', function ($id) {
     $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
     $konsultan->status_aktif = $konsultan->is_available;
+
+    // Ambil ulasan dari pembayaran yang sudah dirating dan konsultasinya sudah selesai
+    $ulasan = \App\Models\Pembayaran::whereHas('konsultasi', function ($q) use ($id) {
+            $q->where('konsultan_id', $id)
+              ->where('status', 'selesai');
+        })
+        ->where('sudah_dirating', true)
+        ->whereNotNull('ulasan')
+        ->with(['konsultasi.user'])
+        ->orderBy('created_at', 'desc')
+        ->get()
+        ->map(function ($p) {
+            return [
+                'nama_user'   => $p->konsultasi->user->nama ?? 'Anonim',
+                'rating'      => $p->rating,
+                'ulasan'      => $p->ulasan,
+                'tanggal'     => $p->created_at->translatedFormat('d F Y'),
+            ];
+        });
+
     return Inertia::render('Public/KonsultanDetail', [
-        'konsultan' => $konsultan
+        'konsultan' => $konsultan,
+        'ulasan'    => $ulasan,  // <-- tambahkan ini
     ]);
 })->name('public.konsultan.detail');
 
@@ -96,6 +114,11 @@ Route::get('/konsultan-public/{id}', function ($id) {
 Route::get('/tentang-kami', function () {
     return Inertia::render('Public/AboutUs');
 })->name('public.about');
+
+// Halaman publik Cek Status Booking
+Route::get('/cek-booking', function () {
+    return Inertia::render('Public/CekBooking');
+})->name('public.cekbooking');
 
 // layanan keuangan
 Route::get('/layanan/{slug}', function ($slug) {
@@ -166,22 +189,27 @@ Route::get('/booking-success/{id}', function ($id) {
 // proses booking & pembayaran palsu
 Route::post('/checkout/{id}', function (\Illuminate\Http\Request $request, $id) {
     $rules = [
-        'date' => 'required|date',
+        'date' => [
+            'required',
+            'date',
+            'after_or_equal:today',
+            'before_or_equal:' . \Carbon\Carbon::now()->addDays(30)->format('Y-m-d'),
+        ],
         'time' => 'required',
         'topic' => 'nullable|string',
         'payment_method' => 'required|string',
         'name' => 'required|string|max:255',
         'email' => 'required|email|max:255',
-        'phone' => 'required|string|max:20',
+        'phone' => ['required', 'string', 'min:9', 'max:15', 'regex:/^(\+62|62|0)[0-9]{8,13}$/'],
     ];
 
-    $request->validate($rules);
+    $messages = [
+        'phone.regex' => 'Format nomor telepon tidak valid. Contoh: 081234567890',
+        'date.after_or_equal' => 'Tanggal yang dipilih sudah lewat, silakan pilih tanggal lain.',
+        'date.before_or_equal' => 'Booking maksimal hanya 30 hari ke depan.',
+    ];
 
-    // Tolak jika tanggal yang dipilih sudah lewat
-    $today = date('Y-m-d');
-    if ($request->input('date') < $today) {
-        return back()->withErrors(['date' => 'Tanggal yang dipilih sudah lewat, silakan pilih tanggal lain.']);
-    }
+    $request->validate($rules, $messages);
 
     $konsultan = \App\Models\User::where('role', 2)->findOrFail($id);
     
@@ -217,10 +245,24 @@ Route::post('/checkout/{id}', function (\Illuminate\Http\Request $request, $id) 
             'role' => 3, // Pelanggan
         ]);
     } else {
-        $client->update([
-            'nama' => $request->input('name'),
-            'no_telepon' => $request->input('phone'),
-        ]);
+        // Hanya update data jika akun yang ditemukan adalah pelanggan (role 3)
+        // Jangan pernah update data akun admin (role 1) atau konsultan (role 2)
+        if ($client->role == 3) {
+            $client->update([
+                'nama' => $request->input('name'),
+                'no_telepon' => $request->input('phone'),
+            ]);
+        } else {
+            // Email cocok dengan akun admin/konsultan — buat akun pelanggan baru dengan email yang ditambah suffix unik
+            // agar booking tetap bisa diproses tanpa merusak akun yang sudah ada
+            $client = \App\Models\User::create([
+                'nama' => $request->input('name'),
+                'email' => $request->input('email') . '_guest_' . uniqid(),
+                'no_telepon' => $request->input('phone'),
+                'password' => \Illuminate\Support\Facades\Hash::make('password_pahamuang_guest_123'),
+                'role' => 3,
+            ]);
+        }
     }
 
     // Buat konsultasi
@@ -236,7 +278,7 @@ Route::post('/checkout/{id}', function (\Illuminate\Http\Request $request, $id) 
     // Buat pembayaran palsu
     \App\Models\Pembayaran::create([
         'konsultasi_id' => $konsultasi->id,
-        'jumlah' => $hargaKonsultan,
+        'jumlah' => $hargaKonsultan + 5000,
         'status_pembayaran' => 'lunas',
         'metode_pembayaran' => $request->input('payment_method'),
         'kode_transaksi' => 'TX-' . strtoupper(uniqid()),
@@ -286,8 +328,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::post('/konsultan', [AdminController::class, 'storeKonsultan'])
             ->name('konsultan.store');
 
-        Route::get('/pelanggan', [AdminController::class, 'indexPelanggan'])
-            ->name('pelanggan.index');
+        // Route pelanggan dihapus dari navigasi (method indexPelanggan tetap ada di controller sebagai cadangan)
+        // Route::get('/pelanggan', [AdminController::class, 'indexPelanggan'])->name('pelanggan.index');
 
         Route::get('/konsultasi', [AdminController::class, 'indexKonsultasiBooking'])
             ->name('konsultasi.index');
@@ -310,6 +352,7 @@ Route::middleware(['auth', 'verified', 'role:konsultan'])->prefix('konsultan')->
     Route::post('/profil',           [KonsultanController::class, 'updateProfil'])->name('profil.post');
     Route::patch('/profil',          [KonsultanController::class, 'updateProfil'])->name('profil');
     Route::get('/riwayat',           [KonsultanController::class, 'getRiwayatKonsultasi'])->name('riwayat');
+    Route::get('/pendapatan',        [KonsultanController::class, 'getPendapatan'])->name('pendapatan');
 });
 
 // 4. PROFILE (semua user login)
@@ -320,12 +363,5 @@ Route::middleware('auth')->group(function () {
 });
 
 
-Route::get('/konsultan', function () {
-    return 'Halaman Manajemen Konsultan';
-})->name('konsultan.index');
-
-Route::get('/pelanggan', function () {
-    return 'Halaman User Pelanggan';
-})->name('pelanggan.index');
 
 require __DIR__ . '/auth.php';

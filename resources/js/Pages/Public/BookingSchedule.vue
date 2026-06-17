@@ -46,6 +46,15 @@ const getTodayDateString = () => {
 };
 const minDate = getTodayDateString();
 
+const maxDate = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+})();
+
 // Check if a time slot is booked for the currently selected date
 const isTimeSlotBooked = (jam) => {
     if (!selectedDate.value) return false;
@@ -139,6 +148,7 @@ const lanjutCheckout = (id) => {
                             type="date"
                             v-model="selectedDate"
                             :min="minDate"
+                            :max="maxDate"
                             class="w-full border border-gray-300 rounded-xl p-4"
                         />
 

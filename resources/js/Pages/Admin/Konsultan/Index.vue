@@ -50,6 +50,10 @@ const deleteKonsultan = (id) => {
 
         <template #header>
             <div>
+                <Link :href="route('admin.dashboard')" class="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-4">
+                    ← Kembali ke Dashboard
+                </Link>
+
                 <h2 class="text-2xl font-bold text-gray-900">
                     Manajemen Data Konsultan
                 </h2>

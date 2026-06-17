@@ -40,26 +40,4 @@ class Konsultasi extends Model
     {
         return $this->hasOne(Pembayaran::class, 'konsultasi_id');
     }
-
-    // Methods from Class Diagram:
-    // +createBooking(user_id, konsultan_id) : Konsultasi
-    public static function createBooking($user_id, $konsultan_id, array $attributes = []): self
-    {
-        return self::create(array_merge([
-            'user_id' => $user_id,
-            'konsultan_id' => $konsultan_id,
-        ], $attributes));
-    }
-
-    // +updateStatus(status) : bool
-    public function updateStatus($status): bool
-    {
-        return $this->update(['status' => $status]);
-    }
-
-    // +getDetail() : Konsultasi
-    public function getDetail(): self
-    {
-        return $this->load(['user', 'konsultan', 'layanan', 'pembayaran']);
-    }
 }

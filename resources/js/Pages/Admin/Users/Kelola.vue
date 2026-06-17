@@ -9,9 +9,14 @@ import { Head, Link } from '@inertiajs/vue3';
     <AuthenticatedLayout>
 
         <template #header>
-            <h2 class="text-2xl font-bold text-gray-800">
-                Kelola User
-            </h2>
+            <div>
+                <Link :href="route('admin.dashboard')" class="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-4">
+                    ← Kembali ke Dashboard
+                </Link>
+                <h2 class="text-2xl font-bold text-gray-800">
+                    Kelola User
+                </h2>
+            </div>
         </template>
 
         <div class="min-h-screen bg-gray-50 py-8">
@@ -59,37 +64,6 @@ import { Head, Link } from '@inertiajs/vue3';
                             class="mt-6 inline-flex items-center font-semibold text-blue-600"
                         >
                             Kelola Konsultan →
-                        </div>
-                    </Link>
-
-                    <!-- Pelanggan -->
-                    <Link
-                        :href="route('admin.pelanggan.index')"
-                        class="group rounded-3xl bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-                    >
-                        <div
-                            class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-green-100 transition group-hover:bg-green-200"
-                        >
-                            <img
-                                src="/images/customer.png"
-                                alt="Pelanggan"
-                                class="h-10 w-10 object-contain"
-                            />
-                        </div>
-
-                        <h2 class="text-2xl font-bold text-gray-900">
-                            User Pelanggan
-                        </h2>
-
-                        <p class="mt-3 text-gray-500">
-                            Kelola data pelanggan yang menggunakan
-                            layanan konsultasi finansial.
-                        </p>
-
-                        <div
-                            class="mt-6 inline-flex items-center font-semibold text-green-600"
-                        >
-                            Kelola Pelanggan →
                         </div>
                     </Link>
 

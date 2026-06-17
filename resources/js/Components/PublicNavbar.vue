@@ -39,6 +39,13 @@ import BrandLogo from '@/Components/BrandLogo.vue';
                 </Link>
 
                 <Link
+                    :href="route('public.cekbooking')"
+                    class="hover:text-brand-focus transition-colors duration-300"
+                >
+                    Cek Booking
+                </Link>
+
+                <Link
                     :href="route('login')"
                     class="hover:text-brand-focus transition-colors duration-300"
                 >

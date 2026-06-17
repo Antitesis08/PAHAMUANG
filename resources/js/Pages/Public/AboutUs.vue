@@ -4,11 +4,11 @@ import PublicNavbar from '@/Components/PublicNavbar.vue';
 
 // Developers data
 const developers = [
-    { name: 'Razzan Haydar', role: 'Lead Developer' },
-    { name: 'Sulthan Dhiyaul', role: 'Lead UI/UX Designer' },
-    { name: 'Kiyana Shakyla', role: 'Fullstack Engineer' },
-    { name: 'Zahra Khalis', role: 'Data Analyst & Backend' },
-    { name: 'Antonia Rachelia', role: 'QA Engineer & Frontend' }
+    { name: 'Razzan Haydar', role: '2350081111' },
+    { name: 'Sulthan Dhiyaul', role: '2360082001' },
+    { name: 'Kiyana Shakyla', role: '2350081150' },
+    { name: 'Zahra Khalis', role: '2350081128' },
+    { name: 'Antonia Rachelia', role: '2350081128' }
 ];
 
 // Helper to get initials

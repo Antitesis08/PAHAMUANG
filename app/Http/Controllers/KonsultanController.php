@@ -158,6 +158,7 @@ class KonsultanController extends Controller
 
         $totalJadwal = \App\Models\Konsultasi::where('konsultan_id', $user->id)
             ->where('jadwal', '>=', now())
+            ->whereIn('status', ['pending', 'aktif'])
             ->count();
 
         $totalSelesai = \App\Models\Konsultasi::where('konsultan_id', $user->id)
@@ -165,7 +166,8 @@ class KonsultanController extends Controller
             ->count();
 
         $totalPendapatan = \App\Models\Pembayaran::whereHas('konsultasi', function ($query) use ($user) {
-                $query->where('konsultan_id', $user->id);
+                $query->where('konsultan_id', $user->id)
+                      ->where('status', 'selesai');
             })
             ->sum('jumlah');
 
@@ -242,5 +244,55 @@ class KonsultanController extends Controller
         }
 
         return back()->with('success', 'Konsultasi ditandai selesai.');
+    }
+
+    /**
+     * Tampilkan rincian pendapatan konsultan.
+     * GET /konsultan/pendapatan
+     */
+    public function getPendapatan(): \Inertia\Response
+    {
+        $user = auth()->user();
+
+        // Ambil semua pembayaran dari konsultasi milik konsultan ini yang sudah selesai
+        $rincian = \App\Models\Pembayaran::whereHas('konsultasi', function ($q) use ($user) {
+                $q->where('konsultan_id', $user->id)
+                  ->where('status', 'selesai');
+            })
+            ->with(['konsultasi.user', 'konsultasi' => function($q) {
+                $q->select('id', 'user_id', 'konsultan_id', 'jadwal', 'catatan', 'status');
+            }])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id'               => $p->id,
+                    'kode_transaksi'   => $p->kode_transaksi,
+                    'nama_user'        => $p->konsultasi->user->nama ?? '-',
+                    'email_user'       => $p->konsultasi->user->email ?? '-',
+                    'no_telepon_user'  => $p->konsultasi->user->no_telepon ?? '-',
+                    'jadwal'           => $p->konsultasi->jadwal
+                                            ? \Carbon\Carbon::parse($p->konsultasi->jadwal)->format('d M Y, H:i')
+                                            : '-',
+                    'jumlah'           => $p->jumlah,
+                    'jumlah_formatted' => 'Rp ' . number_format($p->jumlah, 0, ',', '.'),
+                    'metode'           => $p->metode_pembayaran,
+                    'tanggal_bayar'    => $p->tanggal_bayar
+                                            ? \Carbon\Carbon::parse($p->tanggal_bayar)->format('d M Y')
+                                            : '-',
+                    'rating'           => $p->rating,
+                    'ulasan'           => $p->ulasan,
+                ];
+            });
+
+        $totalPendapatan = $rincian->sum('jumlah');
+        $totalSesi       = $rincian->count();
+
+        return Inertia::render('Konsultan/Pendapatan', [
+            'konsultan'        => $user,
+            'rincian'          => $rincian,
+            'total_pendapatan' => $totalPendapatan,
+            'total_sesi'       => $totalSesi,
+        ]);
     }
 }

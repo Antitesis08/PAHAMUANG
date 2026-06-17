@@ -70,33 +70,9 @@ public function getNameAttribute()
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_available' => 'boolean',
-        'tarif' => 'decimal:0',
+        'tarif' => 'integer',
         'rating' => 'decimal:1',
         'jumlah_ulasan' => 'integer',
     ];
 
-    public function createBooking($layanan_id, $jadwal): Konsultasi
-    {
-        $konsultan = self::where('role', 2)->first();
-        return Konsultasi::create([
-            'user_id' => $this->id,
-            'konsultan_id' => $konsultan ? $konsultan->id : $this->id,
-            'layanan_id' => $layanan_id,
-            'status' => 'pending',
-            'jadwal' => $jadwal,
-        ]);
-    }
-
-    public function updateStatus($is_available): bool
-    {
-        return $this->update(['is_available' => $is_available]);
-    }
-
-    public function getKonsultasiList(): \Illuminate\Database\Eloquent\Collection
-    {
-        if ($this->role == 2) {
-            return Konsultasi::where('konsultan_id', $this->id)->get();
-        }
-        return Konsultasi::where('user_id', $this->id)->get();
-    }
 }

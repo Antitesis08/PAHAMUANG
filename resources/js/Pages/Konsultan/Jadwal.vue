@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 
 defineProps({
     jadwals: Array,
@@ -12,13 +12,18 @@ defineProps({
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-gray-800">
-                    Jadwal Konsultasi
-                </h2>
+            <div>
+                <Link :href="route('konsultan.dashboard')" class="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-4">
+                    ← Kembali ke Dashboard
+                </Link>
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        Jadwal Konsultasi
+                    </h2>
 
-                <div class="text-sm text-gray-500">
-                    Total Jadwal: {{ jadwals.length }}
+                    <div class="text-sm text-gray-500">
+                        Total Jadwal: {{ jadwals.length }}
+                    </div>
                 </div>
             </div>
         </template>

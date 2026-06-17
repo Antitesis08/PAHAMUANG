@@ -47,6 +47,11 @@ const getExtendedData = (user) => {
 
 const konsultans = ref(props.initialKonsultans.map(getExtendedData));
 
+// Search & Sort & Filter state
+const searchQuery = ref('');
+const selectedSpesialisasi = ref('semua');
+const sortBy = ref('default');
+
 // Reactive Filters
 const filters = reactive({
     harga: 'semua',
@@ -70,9 +75,33 @@ watch(filters, () => {
     }, 300);
 }, { deep: true });
 
+// Unique spesialisasi list for dropdown (extracted from loaded data)
+const uniqueSpesialisasi = computed(() => {
+    const allSpecs = new Set();
+    konsultans.value.forEach(k => {
+        k.specialties.forEach(s => allSpecs.add(s));
+    });
+    return Array.from(allSpecs).sort();
+});
+
 // Computed properties for filtered list (uses appliedFilters for smooth UX)
 const filteredKonsultans = computed(() => {
-    return konsultans.value.filter(k => {
+    let result = konsultans.value.filter(k => {
+        // Search filter (by name)
+        if (searchQuery.value.trim()) {
+            const query = searchQuery.value.trim().toLowerCase();
+            if (!k.nama.toLowerCase().includes(query) && !k.displayName.toLowerCase().includes(query)) {
+                return false;
+            }
+        }
+
+        // Spesialisasi filter
+        if (selectedSpesialisasi.value !== 'semua') {
+            if (!k.specialties.includes(selectedSpesialisasi.value)) {
+                return false;
+            }
+        }
+
         // Status Filter
         if (appliedFilters.status === 'tersedia' && !k.isAvailable) return false;
         if (appliedFilters.status === 'sibuk' && k.isAvailable) return false;
@@ -89,6 +118,17 @@ const filteredKonsultans = computed(() => {
 
         return true;
     });
+
+    // Sort
+    if (sortBy.value === 'tarif-asc') {
+        result = [...result].sort((a, b) => a.harga - b.harga);
+    } else if (sortBy.value === 'tarif-desc') {
+        result = [...result].sort((a, b) => b.harga - a.harga);
+    } else if (sortBy.value === 'rating-desc') {
+        result = [...result].sort((a, b) => b.rating - a.rating);
+    }
+
+    return result;
 });
 
 const formatPrice = (price) => {
@@ -197,6 +237,45 @@ const formatPrice = (price) => {
                     <div class="mb-8">
                         <h1 class="text-3xl font-bold text-gray-900 mb-2">Pilih Konsultan Keuangan</h1>
                         <p class="text-gray-500 text-lg">Temukan pakar keuangan bersertifikat yang tepat untuk kebutuhan Anda.</p>
+
+                        <!-- Search, Filter, Sort Bar -->
+                        <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                            <!-- Search -->
+                            <div class="relative flex-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3.5 top-3 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input
+                                    v-model="searchQuery"
+                                    type="text"
+                                    placeholder="Cari nama konsultan..."
+                                    class="w-full rounded-xl border border-gray-200 py-2.5 pl-10 pr-4 text-sm focus:border-brand-focus focus:ring-brand-focus"
+                                />
+                            </div>
+
+                            <!-- Filter Spesialisasi -->
+                            <select
+                                v-model="selectedSpesialisasi"
+                                class="rounded-xl border border-gray-200 py-2.5 px-4 text-sm focus:border-brand-focus focus:ring-brand-focus bg-white"
+                            >
+                                <option value="semua">Semua Spesialisasi</option>
+                                <option v-for="spec in uniqueSpesialisasi" :key="spec" :value="spec">
+                                    {{ spec }}
+                                </option>
+                            </select>
+
+                            <!-- Sort -->
+                            <select
+                                v-model="sortBy"
+                                class="rounded-xl border border-gray-200 py-2.5 px-4 text-sm focus:border-brand-focus focus:ring-brand-focus bg-white"
+                            >
+                                <option value="default">Urutkan</option>
+                                <option value="tarif-asc">Tarif Terendah</option>
+                                <option value="tarif-desc">Tarif Tertinggi</option>
+                                <option value="rating-desc">Rating Tertinggi</option>
+                            </select>
+                        </div>
+
                         <p class="text-brand-focus font-medium text-sm mt-4">
                             Menampilkan {{ filteredKonsultans.length }} konsultan
                         </p>

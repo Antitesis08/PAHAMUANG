@@ -7,6 +7,10 @@ const props = defineProps({
     konsultan: {
         type: Object,
         required: true
+    },
+    ulasan: {         // <-- tambahkan ini
+        type: Array,
+        default: () => []
     }
 });
 
@@ -206,6 +210,63 @@ const proceedToBooking = () => {
                                     <span class="text-gray-700">Dukungan berkelanjutan (follow-up) pasca sesi konsultasi utama.</span>
                                 </li>
                             </ul>
+                        </div>
+                    </div>
+
+                    <!-- Ulasan Klien Card -->
+                    <div class="bg-white rounded-3xl shadow-sm p-8 border border-gray-100">
+                        <div class="flex items-center gap-2 mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#0B56D5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z" />
+                            </svg>
+                            <h2 class="text-xl font-bold text-gray-900">Ulasan Klien</h2>
+                            <span class="ml-auto text-sm text-gray-400 font-medium">{{ ulasan.length }} ulasan</span>
+                        </div>
+
+                        <!-- Jika tidak ada ulasan -->
+                        <div v-if="ulasan.length === 0" class="text-center py-8 text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z" />
+                            </svg>
+                            <p class="font-medium">Belum ada ulasan</p>
+                            <p class="text-sm">Jadilah yang pertama memberikan ulasan</p>
+                        </div>
+
+                        <!-- Daftar ulasan -->
+                        <div v-else class="space-y-5">
+                            <div
+                                v-for="(item, index) in ulasan"
+                                :key="index"
+                                class="border border-gray-100 rounded-2xl p-5 hover:border-blue-100 transition-colors"
+                            >
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex items-center gap-3">
+                                        <!-- Avatar inisial nama -->
+                                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-sm flex-shrink-0">
+                                            {{ item.nama_user.charAt(0).toUpperCase() }}
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-gray-900 text-sm">{{ item.nama_user }}</p>
+                                            <p class="text-xs text-gray-400">{{ item.tanggal }}</p>
+                                        </div>
+                                    </div>
+                                    <!-- Bintang rating -->
+                                    <div class="flex items-center gap-0.5">
+                                        <svg
+                                            v-for="star in 5"
+                                            :key="star"
+                                            :class="star <= item.rating ? 'text-yellow-400' : 'text-gray-200'"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="h-4 w-4"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 text-sm leading-relaxed">{{ item.ulasan }}</p>
+                            </div>
                         </div>
                     </div>
 

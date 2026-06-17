@@ -118,6 +118,10 @@ class AdminController extends Controller implements ApiInterface
      */
     public function destroy($id): \Illuminate\Http\RedirectResponse
     {
+        if ($id == auth()->id()) {
+            return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+        }
+
         $user = User::findOrFail($id);
 
         $user->delete();
@@ -333,4 +337,5 @@ class AdminController extends Controller implements ApiInterface
             ->back()
             ->with('success', 'Jadwal konsultasi berhasil dihapus.');
     }
+
 }

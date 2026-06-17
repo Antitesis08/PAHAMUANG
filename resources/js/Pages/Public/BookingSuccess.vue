@@ -14,9 +14,27 @@ const formatPrice = (price) => {
     }).format(price);
 };
 
+const parseLocalDate = (dateString) => {
+    if (!dateString) return null;
+    const cleaned = dateString.replace('T', ' ').replace(/\.\d+/, '').replace(/Z$/, '').replace(/[\+\-]\d{2}:\d{2}$/, '');
+    const parts = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+    if (parts) {
+        return new Date(
+            parseInt(parts[1], 10),
+            parseInt(parts[2], 10) - 1,
+            parseInt(parts[3], 10),
+            parseInt(parts[4], 10),
+            parseInt(parts[5], 10),
+            parseInt(parts[6], 10)
+        );
+    }
+    return new Date(dateString);
+};
+
 const formatDate = (dateString) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
+    const date = parseLocalDate(dateString);
+    if (!date) return '-';
     return date.toLocaleDateString('id-ID', {
         weekday: 'long',
         day: 'numeric',
@@ -27,7 +45,8 @@ const formatDate = (dateString) => {
 
 const formatTime = (dateString) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
+    const date = parseLocalDate(dateString);
+    if (!date) return '-';
     return date.toLocaleTimeString('id-ID', {
         hour: '2-digit',
         minute: '2-digit',

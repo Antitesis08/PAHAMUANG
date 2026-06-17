@@ -86,6 +86,10 @@ const roleLabel = (role) => {
 
                 <!-- Header -->
                 <div class="mb-8">
+                    <Link :href="route('admin.dashboard')" class="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-4">
+                        ← Kembali ke Dashboard
+                    </Link>
+
                     <h1 class="text-3xl font-bold text-gray-900">
                         Manajemen Semua User
                     </h1>
